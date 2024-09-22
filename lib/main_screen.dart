@@ -100,10 +100,8 @@ class _MainScreen extends State<MainScreen> {
 
       setState(() {
         if (_currentTextfield > 0) {
-          print('current textfield $_currentTextfield');
           _currentTextfield--;
           _currentRow++;
-          print('current textfield $_currentTextfield');
         }
       });
     }
@@ -128,24 +126,22 @@ class _MainScreen extends State<MainScreen> {
     List<String> _currentWordList = [];
     String _currentWord = "";
 
-    // Calculate the starting index for the current row (right-to-left)
-    int startIndex = _currentTextfield;
-    int endIndex = startIndex + 4;
+    int startIndex = _currentTextfield + 5;
+    int endIndex = _currentTextfield;
 
     if (_currentRow == 5) {
-      for (int i = startIndex; i<= endIndex; i++) {
+      for (int i = startIndex; i >= endIndex; i--) {
         _currentWordList.add(_controllers[i].text);
         print('startindex = $i');
       }
 
       _currentWord = _currentWordList.join("");
-      print(_currentWord); // For debugging
+      print(_currentWord); 
 
       if (_currentWord == _corectWord) {
         setState(() {
           print("correct word");
           _currentRow = 0;
-          _currentTextfield--;
         });
       } else {
         setState(() {
