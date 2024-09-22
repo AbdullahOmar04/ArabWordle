@@ -100,8 +100,10 @@ class _MainScreen extends State<MainScreen> {
 
       setState(() {
         if (_currentTextfield > 0) {
+          print('current textfield $_currentTextfield');
           _currentTextfield--;
           _currentRow++;
+          print('current textfield $_currentTextfield');
         }
       });
     }
@@ -127,33 +129,33 @@ class _MainScreen extends State<MainScreen> {
     String _currentWord = "";
 
     // Calculate the starting index for the current row (right-to-left)
-    int startIndex = _currentTextfield - (_currentTextfield % 5);
+    int startIndex = _currentTextfield;
     int endIndex = startIndex + 4;
 
-    // Collect the letters from the current row, reading right to left
-    for (int i = endIndex; i >= startIndex; i--) {
-      _currentWordList.add(_controllers[i].text);
+    if (_currentRow == 5) {
+      for (int i = startIndex; i<= endIndex; i++) {
+        _currentWordList.add(_controllers[i].text);
+        print('startindex = $i');
+      }
+
+      _currentWord = _currentWordList.join("");
+      print(_currentWord); // For debugging
+
+      if (_currentWord == _corectWord) {
+        setState(() {
+          print("correct word");
+          _currentRow = 0;
+          _currentTextfield--;
+        });
+      } else {
+        setState(() {
+          print("Wrong word");
+        });
+      }
+
+      _currentWordList.clear();
     }
-
-    _currentWord = _currentWordList.join("");
-    print(_currentWord); // For debugging
-
-    // Check if the word matches the correct word and reset row or perform other actions
-    if (_currentWord == _corectWord) {
-      setState(() {
-        _currentRow = 0;
-        _currentTextfield = 24; // Reset to the top-right field for a new round
-      });
-    } else {
-      // Move to the next row for a new guess
-      setState(() {
-        _currentTextfield -= 5; // Jump to the start of the next row
-      });
-    }
-
-    _currentWordList.clear(); // Clear the list for the next guess
   }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
