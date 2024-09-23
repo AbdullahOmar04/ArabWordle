@@ -1,4 +1,4 @@
-// ignore_for_file: sort_child_properties_last, unused_field, no_leading_underscores_for_local_identifiers
+// ignore_for_file: sort_child_properties_last, unused_field, no_leading_underscores_for_local_identifiers, unused_local_variable
 import 'package:arab_wordle_1/keyboard.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -125,18 +125,21 @@ class _MainScreen extends State<MainScreen> {
   void _submit() {
     List<String> _currentWordList = [];
     String _currentWord = "";
+    String _guessedLetter;
+    String _correctLetter;
 
     int startIndex = _currentTextfield + 5;
     int endIndex = _currentTextfield;
 
+    List<String> _deconstructedCorrectWord = _corectWord.split('');
+
     if (_currentRow == 5) {
       for (int i = startIndex; i >= endIndex; i--) {
         _currentWordList.add(_controllers[i].text);
-        print('startindex = $i');
       }
 
       _currentWord = _currentWordList.join("");
-      print(_currentWord); 
+      print(_currentWord);
 
       if (_currentWord == _corectWord) {
         setState(() {
@@ -144,12 +147,32 @@ class _MainScreen extends State<MainScreen> {
           _currentRow = 0;
         });
       } else {
+        for (int i = startIndex; i > endIndex; i--) {
+          for (int j = 0; j < 5; j++) {
+            _guessedLetter = _controllers[i].text;
+            _correctLetter = _deconstructedCorrectWord[j];
+
+            if (_guessedLetter == _correctLetter && _currentWordList[j] == _deconstructedCorrectWord[j]) {
+              print(
+                  "The letter $_guessedLetter and $_correctLetter are identitcal and in the same position");
+            } else if (_guessedLetter == _correctLetter && _currentWordList[j] != _deconstructedCorrectWord[j]) {
+              print(
+                  "The letter $_guessedLetter and $_correctLetter are identitcal but not in the correct position");
+            } else {
+              print(
+                  "The letter $_guessedLetter and $_correctLetter are NOT identitcal");
+            }
+          }
+        }
         setState(() {
           print("Wrong word");
+          _currentRow = 0;
         });
       }
 
       _currentWordList.clear();
+    } else {
+      print("Only 5 letter words");
     }
   }
 
