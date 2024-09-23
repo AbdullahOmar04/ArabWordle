@@ -1,4 +1,6 @@
 // ignore_for_file: sort_child_properties_last, unused_field, no_leading_underscores_for_local_identifiers, unused_local_variable
+import 'dart:ffi';
+
 import 'package:arab_wordle_1/keyboard.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreen extends State<MainScreen> {
+  bool gameWon = false;
+
   int _currentTextfield = 24;
 
   int _currentRow = 0;
@@ -110,7 +114,7 @@ class _MainScreen extends State<MainScreen> {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _backspace() {
-    if (_currentTextfield > 0 && _currentRow > 0) {
+    if ((_currentTextfield > 0 && _currentRow > 0) && gameWon == false) {
       setState(() {
         _currentTextfield++;
         _currentRow--;
@@ -144,7 +148,7 @@ class _MainScreen extends State<MainScreen> {
       if (_currentWord == _corectWord) {
         setState(() {
           print("correct word");
-          _currentRow = 0;
+          gameWon = true;
         });
       } else {
         for (int i = startIndex; i > endIndex; i--) {
