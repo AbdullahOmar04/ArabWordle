@@ -1,6 +1,4 @@
-// ignore_for_file: sort_child_properties_last, unused_field, no_leading_underscores_for_local_identifiers, unused_local_variable
-import 'dart:ffi';
-
+// ignore_for_file: sort_child_properties_last, unused_field, no_leading_underscores_for_local_identifiers, unused_local_variable, constant_pattern_never_matches_value_type
 import 'package:arab_wordle_1/keyboard.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -17,14 +15,17 @@ class MainScreen extends StatefulWidget {
 class _MainScreen extends State<MainScreen> {
   bool gameWon = false;
 
-  int _currentTextfield = 24;
+  int _currentTextfield = 0;
 
-  int _currentRow = 0;
+  int _fiveLettersStop = 0;
 
-  final String _corectWord = 'إنتحر';
+  final String _correctWord = 'عبالي';
 
   final List<TextEditingController> _controllers =
       List.generate(25, (index) => TextEditingController());
+
+  final List<Color> _fillColors =
+      List.generate(25, (index) => Colors.grey.shade300);
 
   final bool _readOnly = true;
 
@@ -44,18 +45,18 @@ class _MainScreen extends State<MainScreen> {
       body: Column(
         children: [
           const SizedBox(height: 20),
-          for (int i = 0; i < 5; i++) // 6 rows of 5 TextFields each
+          for (int i = 0; i < 5; i++)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                for (int j = 4; j >= 0; j--) // 5 TextFields per row
+                for (int j = 4; j >= 0; j--)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: SizedBox(
                       height: 100,
                       width: 60,
                       child: TextField(
-                        controller: _controllers[(4 - i) * 5 + (4 - j)],
+                        controller: _controllers[i * 5 + j],
                         readOnly: _readOnly,
                         textAlign: TextAlign.center,
                         maxLength: 1,
@@ -63,7 +64,7 @@ class _MainScreen extends State<MainScreen> {
                           LengthLimitingTextInputFormatter(1),
                         ],
                         decoration: InputDecoration(
-                          fillColor: Colors.grey.shade400,
+                          fillColor: _fillColors[i * 5 + j],
                           filled: true,
                           counterText: '',
                           border: const OutlineInputBorder(
@@ -97,16 +98,16 @@ class _MainScreen extends State<MainScreen> {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _insertText(String myText) {
-    if (_currentTextfield >= 0 && _currentRow < 5) {
+    if ((_currentTextfield < 25 && _fiveLettersStop < 5) && gameWon == false) {
       final controller = _controllers[_currentTextfield];
 
       controller.text = myText;
 
       setState(() {
-        if (_currentTextfield > 0) {
-          _currentTextfield--;
-          _currentRow++;
-        }
+        _currentTextfield++;
+        _fiveLettersStop++;
+
+        print("textfield = $_currentTextfield");
       });
     }
   }
@@ -114,10 +115,10 @@ class _MainScreen extends State<MainScreen> {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _backspace() {
-    if ((_currentTextfield > 0 && _currentRow > 0) && gameWon == false) {
+    if ((_currentTextfield > 0 && _fiveLettersStop > 0) && gameWon == false) {
       setState(() {
-        _currentTextfield++;
-        _currentRow--;
+        _currentTextfield--;
+        _fiveLettersStop--;
       });
 
       _controllers[_currentTextfield].clear();
@@ -127,57 +128,74 @@ class _MainScreen extends State<MainScreen> {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _submit() {
+    if (_currentTextfield % 5 != 0 || _fiveLettersStop != 5) {
+      print("Please enter a 5-letter word");
+      return;
+    }
+
     List<String> _currentWordList = [];
     String _currentWord = "";
     String _guessedLetter;
-    String _correctLetter;
+    bool _letterCorrect = false;
+    bool _letterFound = false;
 
-    int startIndex = _currentTextfield + 5;
-    int endIndex = _currentTextfield;
+    int startIndex = _currentTextfield - 5;
+    int endIndex = _currentTextfield - 1;
 
-    List<String> _deconstructedCorrectWord = _corectWord.split('');
+    List<String> _deconstructedCorrectWord = _correctWord.split('');
 
-    if (_currentRow == 5) {
-      for (int i = startIndex; i >= endIndex; i--) {
-        _currentWordList.add(_controllers[i].text);
-      }
-
-      _currentWord = _currentWordList.join("");
-      print(_currentWord);
-
-      if (_currentWord == _corectWord) {
-        setState(() {
-          print("correct word");
-          gameWon = true;
-        });
-      } else {
-        for (int i = startIndex; i > endIndex; i--) {
-          for (int j = 0; j < 5; j++) {
-            _guessedLetter = _controllers[i].text;
-            _correctLetter = _deconstructedCorrectWord[j];
-
-            if (_guessedLetter == _correctLetter && _currentWordList[j] == _deconstructedCorrectWord[j]) {
-              print(
-                  "The letter $_guessedLetter and $_correctLetter are identitcal and in the same position");
-            } else if (_guessedLetter == _correctLetter && _currentWordList[j] != _deconstructedCorrectWord[j]) {
-              print(
-                  "The letter $_guessedLetter and $_correctLetter are identitcal but not in the correct position");
-            } else {
-              print(
-                  "The letter $_guessedLetter and $_correctLetter are NOT identitcal");
-            }
-          }
-        }
-        setState(() {
-          print("Wrong word");
-          _currentRow = 0;
-        });
-      }
-
-      _currentWordList.clear();
-    } else {
-      print("Only 5 letter words");
+    for (int i = startIndex; i <= endIndex; i++) {
+      _currentWordList.add(_controllers[i].text);
     }
+
+    _currentWord = _currentWordList.join("");
+    print(_currentWord);
+
+    if (_currentWord == _correctWord) {
+      setState(() {
+        for (int k = startIndex; k <= endIndex; k++) {
+          _fillColors[k] = Colors.green;
+        }
+        print("correct word");
+        gameWon = true;
+      });
+    } else {
+      for (int i = startIndex, j = 0; i <= endIndex; i++, j++) {
+        _guessedLetter = _controllers[i].text;
+
+        if (_deconstructedCorrectWord.contains(_guessedLetter)) {
+          setState(() {
+            print('$_guessedLetter =  LETTER FOUND IS $_letterFound');
+            _letterFound = true;
+          });
+        }
+
+        if (_guessedLetter == _deconstructedCorrectWord[j]) {
+          setState(() {
+            _fillColors[i] = Colors.green;
+            print('in first IF and letter is $_guessedLetter');
+          });
+        } else if (_deconstructedCorrectWord.contains(_guessedLetter) &&
+            _letterFound == false) {
+          setState(() {
+            _fillColors[i] = Colors.orange;
+            print('in ORANGE and letter is $_guessedLetter');
+          });
+        } else {
+          setState(() {
+            _fillColors[i] = Colors.grey.shade600;
+            print('letter $_guessedLetter wrong');
+          });
+        }
+      }
+
+      if (_currentTextfield == 25 && gameWon == false) {
+        print("Game over. The correct word was: $_correctWord");
+      }
+    }
+
+    _currentWordList.clear();
+    _fiveLettersStop = 0;
   }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
