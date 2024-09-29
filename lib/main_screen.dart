@@ -22,10 +22,10 @@ class _MainScreen extends State<MainScreen> {
   final String _correctWord = 'عبالي';
 
   final List<TextEditingController> _controllers =
-      List.generate(25, (index) => TextEditingController());
+      List.generate(30, (index) => TextEditingController());
 
   final List<Color> _fillColors =
-      List.generate(25, (index) => Colors.grey.shade300);
+      List.generate(30, (index) => Colors.grey.shade300);
 
   final bool _readOnly = true;
 
@@ -45,7 +45,7 @@ class _MainScreen extends State<MainScreen> {
       body: Column(
         children: [
           const SizedBox(height: 20),
-          for (int i = 0; i < 5; i++)
+          for (int i = 0; i < 6; i++)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -53,7 +53,7 @@ class _MainScreen extends State<MainScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: SizedBox(
-                      height: 100,
+                      height: 90,
                       width: 60,
                       child: TextField(
                         controller: _controllers[i * 5 + j],
@@ -98,7 +98,7 @@ class _MainScreen extends State<MainScreen> {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _insertText(String myText) {
-    if ((_currentTextfield < 25 && _fiveLettersStop < 5) && gameWon == false) {
+    if ((_currentTextfield < 30 && _fiveLettersStop < 5) && gameWon == false) {
       final controller = _controllers[_currentTextfield];
 
       controller.text = myText;
@@ -143,6 +143,12 @@ class _MainScreen extends State<MainScreen> {
     int endIndex = _currentTextfield - 1;
 
     List<String> _deconstructedCorrectWord = _correctWord.split('');
+    Map<String, int> letterCounts = {};
+
+    // Count occurrences of each letter in the correct word
+    for (var letter in _deconstructedCorrectWord) {
+      letterCounts[letter] = (letterCounts[letter] ?? 0) + 1;
+    }
 
     for (int i = startIndex; i <= endIndex; i++) {
       _currentWordList.add(_controllers[i].text);
@@ -163,34 +169,43 @@ class _MainScreen extends State<MainScreen> {
       for (int i = startIndex, j = 0; i <= endIndex; i++, j++) {
         _guessedLetter = _controllers[i].text;
 
-        if (_deconstructedCorrectWord.contains(_guessedLetter)) {
-          setState(() {
-            print('$_guessedLetter =  LETTER FOUND IS $_letterFound');
-            _letterFound = true;
-          });
-        }
-
         if (_guessedLetter == _deconstructedCorrectWord[j]) {
           setState(() {
             _fillColors[i] = Colors.green;
             print('in first IF and letter is $_guessedLetter');
           });
-        } else if (_deconstructedCorrectWord.contains(_guessedLetter) &&
-            _letterFound == false) {
-          setState(() {
-            _fillColors[i] = Colors.orange;
-            print('in ORANGE and letter is $_guessedLetter');
-          });
-        } else {
-          setState(() {
-            _fillColors[i] = Colors.grey.shade600;
-            print('letter $_guessedLetter wrong');
-          });
+          letterCounts[_guessedLetter] = letterCounts[_guessedLetter]! - 1;
         }
       }
 
-      if (_currentTextfield == 25 && gameWon == false) {
-        print("Game over. The correct word was: $_correctWord");
+      for (int i = startIndex, j = 0; i <= endIndex; i++, j++) {
+        _guessedLetter = _controllers[i].text;
+        if (_fillColors[i] != Colors.green) {
+          if (letterCounts.containsKey(_guessedLetter) &&
+              letterCounts[_guessedLetter]! > 0) {
+            setState(() {
+              _fillColors[i] = Colors.orange;
+            });
+            letterCounts[_guessedLetter] = letterCounts[_guessedLetter]! - 1;
+          } else {
+            setState(() {
+              _fillColors[i] = Colors.grey.shade600;
+            });
+          }
+        }
+      }
+      if (_currentTextfield == 30 && gameWon == false) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            
+            title: Text(
+              'كشل',
+              textAlign: TextAlign.right,
+            ),
+            content: Text('الكلمة الصحيحةهي: $_correctWord'),
+          ),
+        );
       }
     }
 
