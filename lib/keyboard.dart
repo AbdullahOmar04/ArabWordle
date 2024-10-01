@@ -6,11 +6,13 @@ class CustomKeyboard extends StatelessWidget {
     required this.onTextInput,
     required this.onBackspace,
     required this.onSubmit,
+    required this.keyColors,
   });
 
   final ValueSetter<String> onTextInput;
   final VoidCallback onBackspace;
   final VoidCallback onSubmit;
+  final Map<String, Color> keyColors;
 
   void _textInputHandler(String text) => onTextInput.call(text);
 
@@ -36,56 +38,24 @@ class CustomKeyboard extends StatelessWidget {
     return Expanded(
       child: Row(
         children: [
-          TextKey(
-            text: 'ض',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ص',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ث',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ق',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ف',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'غ',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ع',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ه',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'خ',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ح',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ج',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'إ',
-            onTextInput: _textInputHandler,
-            
-          ),
-        ],
+          'ض',
+          'ص',
+          'ث',
+          'ق',
+          'ف',
+          'غ',
+          'ع',
+          'ه',
+          'خ',
+          'ح',
+          'ج',
+          'إ',
+        ]
+            .map((letter) => TextKey(
+                text: letter,
+                onTextInput: _textInputHandler,
+                color: keyColors[letter] ?? Colors.grey))
+            .toList(),
       ),
     );
   }
@@ -93,57 +63,25 @@ class CustomKeyboard extends StatelessWidget {
   Expanded buildRowTwo() {
     return Expanded(
       child: Row(
-        children: [
-          TextKey(
-            text: 'ش',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'س',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ي',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ب',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ل',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ا',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ت',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ن',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'م',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ك',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ذ',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'د',
-            onTextInput: _textInputHandler,
-          ),
-        ],
-      ),
+          children: [
+        'ش',
+        'س',
+        'ي',
+        'ب',
+        'ل',
+        'ا',
+        'ت',
+        'ن',
+        'م',
+        'ك',
+        'ذ',
+        'د',
+      ]
+              .map((letter) => TextKey(
+                  text: letter,
+                  onTextInput: _textInputHandler,
+                  color: keyColors[letter] ?? Colors.grey))
+              .toList()),
     );
   }
 
@@ -155,46 +93,23 @@ class CustomKeyboard extends StatelessWidget {
             flex: 2,
             onSubmit: _submitHandler,
           ),
-          TextKey(
-            text: 'ئ',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ء',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ؤ',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ر',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ى',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ة',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'و',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ز',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ط',
-            onTextInput: _textInputHandler,
-          ),
-          TextKey(
-            text: 'ظ',
-            onTextInput: _textInputHandler,
-          ),
+          ...[
+            'ئ',
+            'ء',
+            'ؤ',
+            'ر',
+            'ى',
+            'ة',
+            'و',
+            'ز',
+            'ط',
+            'ظ',
+          ]
+              .map((letter) => TextKey(
+                  text: letter,
+                  onTextInput: _textInputHandler,
+                  color: keyColors[letter] ?? Colors.grey))
+              .toList(),
           BackspaceKey(
             flex: 2,
             onBackspace: _backspaceHandler,
@@ -211,11 +126,13 @@ class TextKey extends StatelessWidget {
     required this.text,
     required this.onTextInput,
     this.flex = 1,
+    required this.color,
   });
 
   final String text;
   final ValueSetter<String> onTextInput;
   final int flex;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +142,7 @@ class TextKey extends StatelessWidget {
         padding: const EdgeInsets.all(1.0),
         child: Material(
           borderRadius: BorderRadius.circular(5),
-          color: Colors.grey,
+          color: color,
           child: InkWell(
             onTap: () {
               onTextInput.call(text);

@@ -29,6 +29,8 @@ class _MainScreen extends State<MainScreen> {
 
   final bool _readOnly = true;
 
+  Map<String, Color> keyColors = {};
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,6 +91,7 @@ class _MainScreen extends State<MainScreen> {
             onSubmit: () {
               _submit();
             },
+            keyColors: keyColors,
           ),
         ],
       ),
@@ -136,8 +139,6 @@ class _MainScreen extends State<MainScreen> {
     List<String> _currentWordList = [];
     String _currentWord = "";
     String _guessedLetter;
-    bool _letterCorrect = false;
-    bool _letterFound = false;
 
     int startIndex = _currentTextfield - 5;
     int endIndex = _currentTextfield - 1;
@@ -172,7 +173,7 @@ class _MainScreen extends State<MainScreen> {
         if (_guessedLetter == _deconstructedCorrectWord[j]) {
           setState(() {
             _fillColors[i] = Colors.green;
-            print('in first IF and letter is $_guessedLetter');
+            keyColors[_guessedLetter] = Colors.green;
           });
           letterCounts[_guessedLetter] = letterCounts[_guessedLetter]! - 1;
         }
@@ -187,10 +188,19 @@ class _MainScreen extends State<MainScreen> {
               _fillColors[i] = Colors.orange;
             });
             letterCounts[_guessedLetter] = letterCounts[_guessedLetter]! - 1;
+
+            if (keyColors[_guessedLetter] != Colors.green) {
+              setState(() {
+                keyColors[_guessedLetter] = Colors.orange;
+              });
+            }
           } else {
             setState(() {
               _fillColors[i] = Colors.grey.shade600;
             });
+            if (keyColors[_guessedLetter] != Colors.green && keyColors[_guessedLetter] != Colors.orange) {
+              keyColors[_guessedLetter] = Colors.grey.shade600;
+            }
           }
         }
       }
@@ -198,14 +208,29 @@ class _MainScreen extends State<MainScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            
-            title: Text(
+            backgroundColor: Colors.grey.shade700,
+            title: const Text(
               'كشل',
               textAlign: TextAlign.right,
+              style: TextStyle(
+                color: Colors.white,
+              ),
             ),
-            content: Text('الكلمة الصحيحةهي: $_correctWord'),
+            content: RichText(
+              text: TextSpan(
+                children: [
+                  const TextSpan(text: 'الكلمة الصحيحة هي: '),
+                  TextSpan(
+                    text: _correctWord,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
+      } else if (gameWon == true) {
+        
       }
     }
 
