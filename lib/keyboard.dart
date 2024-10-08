@@ -22,14 +22,15 @@ class CustomKeyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 238.7,
-      padding: const EdgeInsets.all(5.0),
-      alignment: Alignment.center,
-      color: Colors.grey.shade800,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [buildRowOne(), buildRowTwo(), buildRowThree()],
+    return Flexible(
+      child: Container(
+        padding: const EdgeInsets.all(5.0),
+        alignment: Alignment.center,
+        color: Colors.grey.shade800,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [buildRowOne(), buildRowTwo(), buildRowThree()],
+        ),
       ),
     );
   }

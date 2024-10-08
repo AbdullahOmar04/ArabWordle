@@ -1,4 +1,7 @@
 // ignore_for_file: sort_child_properties_last, unused_field, no_leading_underscores_for_local_identifiers, unused_local_variable, constant_pattern_never_matches_value_type
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:arab_wordle_1/keyboard.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +22,13 @@ class _MainScreen extends State<MainScreen> {
 
   int _fiveLettersStop = 0;
 
-  final String _correctWord = 'عبالي';
+  String _correctWord = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWordsFromJson();
+  }
 
   final List<TextEditingController> _controllers =
       List.generate(30, (index) => TextEditingController());
@@ -27,9 +36,31 @@ class _MainScreen extends State<MainScreen> {
   final List<Color> _fillColors =
       List.generate(30, (index) => Colors.grey.shade300);
 
+  List<String> words = [];
+
   final bool _readOnly = true;
 
   Map<String, Color> keyColors = {};
+
+  Future<void> _loadWordsFromJson() async {
+    final jsonString =
+        await rootBundle.loadString('assets/filtered_words.json');
+
+    final data = json.decode(jsonString);
+
+    setState(() {
+      words = List<String>.from(data['words']);
+    });
+
+    _getRandomWord(words);
+  }
+
+  void _getRandomWord(List<String> words) {
+    final random = Random();
+    setState(() {
+      _correctWord = words[random.nextInt(words.length)];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +77,7 @@ class _MainScreen extends State<MainScreen> {
       ),
       body: Column(
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           for (int i = 0; i < 6; i++)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -80,7 +111,6 @@ class _MainScreen extends State<MainScreen> {
                   ),
               ],
             ),
-          const Spacer(),
           CustomKeyboard(
             onTextInput: (myText) {
               _insertText(myText);
@@ -156,7 +186,21 @@ class _MainScreen extends State<MainScreen> {
     }
 
     _currentWord = _currentWordList.join("");
-    print(_currentWord);
+
+    if (!words.contains(_currentWord)) {
+      SnackBar(
+        content: const Text("Words not in list"),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            right: 20,
+            left: 20),
+      );
+      return;
+    }
 
     if (_currentWord == _correctWord) {
       setState(() {
@@ -198,7 +242,8 @@ class _MainScreen extends State<MainScreen> {
             setState(() {
               _fillColors[i] = Colors.grey.shade600;
             });
-            if (keyColors[_guessedLetter] != Colors.green && keyColors[_guessedLetter] != Colors.orange) {
+            if (keyColors[_guessedLetter] != Colors.green &&
+                keyColors[_guessedLetter] != Colors.orange) {
               keyColors[_guessedLetter] = Colors.grey.shade600;
             }
           }
@@ -229,9 +274,7 @@ class _MainScreen extends State<MainScreen> {
             ),
           ),
         );
-      } else if (gameWon == true) {
-        
-      }
+      } else if (gameWon == true) {}
     }
 
     _currentWordList.clear();
