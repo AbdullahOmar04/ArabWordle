@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:arab_wordle_1/keyboard.dart';
+import 'package:arab_wordle_1/themes/theme_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -33,8 +35,9 @@ class _MainScreen extends State<MainScreen> {
   final List<TextEditingController> _controllers =
       List.generate(30, (index) => TextEditingController());
 
-  final List<Color> _fillColors =
-      List.generate(30, (index) => Colors.grey.shade300);
+  List<Color> _fillColors = List.generate(30, (index) => Colors.transparent);
+
+  List<String> _colorTypes = List.generate(30, (index) => "surface");
 
   List<String> words = [];
 
@@ -66,14 +69,39 @@ class _MainScreen extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.grey.shade800,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         centerTitle: true,
-        title: const Text(
+        title: Text(
           "ووردل",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 32),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 32,
+              color: Theme.of(context).colorScheme.onSurface),
         ),
-        backgroundColor: Colors.grey.shade800,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        actions: [
+          IconButton(
+            onPressed: () {
+              ThemeNotifier themeNotifier =
+                  Provider.of<ThemeNotifier>(context, listen: false);
+              if (themeNotifier.themeMode == ThemeMode.light) {
+                themeNotifier.setTheme(ThemeMode.dark);
+              } else {
+                themeNotifier.setTheme(ThemeMode.light);
+              }
+              _updateFillColors();
+            },
+            icon: Icon(
+                Provider.of<ThemeNotifier>(context).themeMode == ThemeMode.light
+                    ? Icons.dark_mode
+                    : Icons.light_mode_rounded),
+            color: Theme.of(context).colorScheme.onSurface,
+            iconSize: 30,
+            padding: const EdgeInsets.only(right: 10),
+            highlightColor: Colors.transparent,
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -97,6 +125,14 @@ class _MainScreen extends State<MainScreen> {
                           LengthLimitingTextInputFormatter(1),
                         ],
                         decoration: InputDecoration(
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.onSurface),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.onSurface),
+                          ),
                           fillColor: _fillColors[i * 5 + j],
                           filled: true,
                           counterText: '',
@@ -104,6 +140,7 @@ class _MainScreen extends State<MainScreen> {
                             borderRadius: BorderRadius.all(
                               Radius.circular(5),
                             ),
+                            borderSide: BorderSide(width: 20),
                           ),
                         ),
                       ),
@@ -128,6 +165,23 @@ class _MainScreen extends State<MainScreen> {
     );
   }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  void _updateFillColors() {
+    setState(() {
+      for (int i = 0; i < _fillColors.length; i++) {
+        switch (_colorTypes[i]) {
+          case "onPrimary":
+            _fillColors[i] = Theme.of(context).colorScheme.onPrimary;
+          case "onSecondary":
+            _fillColors[i] = Theme.of(context).colorScheme.onSecondary;
+          case "onError":
+            _fillColors[i] = Theme.of(context).colorScheme.onError;
+          default:
+           _fillColors[i] = Colors.transparent;
+        }
+      }
+    });
+  }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _insertText(String myText) {
@@ -176,7 +230,6 @@ class _MainScreen extends State<MainScreen> {
     List<String> _deconstructedCorrectWord = _correctWord.split('');
     Map<String, int> letterCounts = {};
 
-    // Count occurrences of each letter in the correct word
     for (var letter in _deconstructedCorrectWord) {
       letterCounts[letter] = (letterCounts[letter] ?? 0) + 1;
     }
@@ -188,24 +241,36 @@ class _MainScreen extends State<MainScreen> {
     _currentWord = _currentWordList.join("");
 
     if (!words.contains(_currentWord)) {
-      SnackBar(
-        content: const Text("Words not in list"),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        margin: EdgeInsets.only(
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          dismissDirection: DismissDirection.horizontal,
+          duration: const Duration(seconds: 2),
+          content: Text(
+            "الكلمة ليست في قاموس اللعبة",
+            style: TextStyle(color: Colors.grey.shade200, fontSize: 20),
+            textAlign: TextAlign.center,
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.only(
             bottom: MediaQuery.of(context).size.height - 100,
             right: 20,
-            left: 20),
+            left: 20,
+          ),
+        ),
       );
+
       return;
     }
 
     if (_currentWord == _correctWord) {
       setState(() {
         for (int k = startIndex; k <= endIndex; k++) {
-          _fillColors[k] = Colors.green;
+          _fillColors[k] = Theme.of(context).colorScheme.onPrimary;
+          _colorTypes[k] = "onPrimary";
         }
         print("correct word");
         gameWon = true;
@@ -216,8 +281,9 @@ class _MainScreen extends State<MainScreen> {
 
         if (_guessedLetter == _deconstructedCorrectWord[j]) {
           setState(() {
-            _fillColors[i] = Colors.green;
-            keyColors[_guessedLetter] = Colors.green;
+            _fillColors[i] = Theme.of(context).colorScheme.onPrimary;
+            _colorTypes[i] = "onPrimary";
+            keyColors[_guessedLetter] = Theme.of(context).colorScheme.onPrimary;
           });
           letterCounts[_guessedLetter] = letterCounts[_guessedLetter]! - 1;
         }
@@ -225,35 +291,42 @@ class _MainScreen extends State<MainScreen> {
 
       for (int i = startIndex, j = 0; i <= endIndex; i++, j++) {
         _guessedLetter = _controllers[i].text;
-        if (_fillColors[i] != Colors.green) {
+        if (_fillColors[i] != Theme.of(context).colorScheme.onPrimary) {
           if (letterCounts.containsKey(_guessedLetter) &&
               letterCounts[_guessedLetter]! > 0) {
             setState(() {
-              _fillColors[i] = Colors.orange;
+              _fillColors[i] = Theme.of(context).colorScheme.onSecondary;
+              _colorTypes[i] = "onSecondary";
             });
             letterCounts[_guessedLetter] = letterCounts[_guessedLetter]! - 1;
 
-            if (keyColors[_guessedLetter] != Colors.green) {
+            if (keyColors[_guessedLetter] !=
+                Theme.of(context).colorScheme.onPrimary) {
               setState(() {
-                keyColors[_guessedLetter] = Colors.orange;
+                keyColors[_guessedLetter] =
+                    Theme.of(context).colorScheme.onSecondary;
               });
             }
           } else {
             setState(() {
-              _fillColors[i] = Colors.grey.shade600;
+              _fillColors[i] = Theme.of(context).colorScheme.onError;
+              _colorTypes[i] = "onError";
             });
-            if (keyColors[_guessedLetter] != Colors.green &&
-                keyColors[_guessedLetter] != Colors.orange) {
-              keyColors[_guessedLetter] = Colors.grey.shade600;
+            if (keyColors[_guessedLetter] !=
+                    Theme.of(context).colorScheme.onPrimary &&
+                keyColors[_guessedLetter] !=
+                    Theme.of(context).colorScheme.onSecondary) {
+              keyColors[_guessedLetter] = Theme.of(context).colorScheme.onError;
             }
           }
         }
       }
+
       if (_currentTextfield == 30 && gameWon == false) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            backgroundColor: Colors.grey.shade700,
+            backgroundColor: Colors.grey.shade600,
             title: const Text(
               'كشل',
               textAlign: TextAlign.right,

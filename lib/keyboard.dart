@@ -26,16 +26,20 @@ class CustomKeyboard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(5.0),
         alignment: Alignment.center,
-        color: Colors.grey.shade800,
+        color: Theme.of(context).colorScheme.surface,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [buildRowOne(), buildRowTwo(), buildRowThree()],
+          children: [
+            buildRowOne(context),
+            buildRowTwo(context),
+            buildRowThree(context)
+          ],
         ),
       ),
     );
   }
 
-  Expanded buildRowOne() {
+  Expanded buildRowOne(BuildContext context) {
     return Expanded(
       child: Row(
         children: [
@@ -55,13 +59,14 @@ class CustomKeyboard extends StatelessWidget {
             .map((letter) => TextKey(
                 text: letter,
                 onTextInput: _textInputHandler,
-                color: keyColors[letter] ?? Colors.grey))
+                color:
+                    keyColors[letter] ?? Theme.of(context).colorScheme.primary))
             .toList(),
       ),
     );
   }
 
-  Expanded buildRowTwo() {
+  Expanded buildRowTwo(BuildContext context) {
     return Expanded(
       child: Row(
           children: [
@@ -81,12 +86,13 @@ class CustomKeyboard extends StatelessWidget {
               .map((letter) => TextKey(
                   text: letter,
                   onTextInput: _textInputHandler,
-                  color: keyColors[letter] ?? Colors.grey))
+                  color: keyColors[letter] ??
+                      Theme.of(context).colorScheme.primary))
               .toList()),
     );
   }
 
-  Expanded buildRowThree() {
+  Expanded buildRowThree(BuildContext context) {
     return Expanded(
       child: Row(
         children: [
@@ -105,12 +111,11 @@ class CustomKeyboard extends StatelessWidget {
             'ز',
             'ط',
             'ظ',
-          ]
-              .map((letter) => TextKey(
-                  text: letter,
-                  onTextInput: _textInputHandler,
-                  color: keyColors[letter] ?? Colors.grey))
-              .toList(),
+          ].map((letter) => TextKey(
+              text: letter,
+              onTextInput: _textInputHandler,
+              color:
+                  keyColors[letter] ?? Theme.of(context).colorScheme.primary)),
           BackspaceKey(
             flex: 2,
             onBackspace: _backspaceHandler,
@@ -151,7 +156,9 @@ class TextKey extends StatelessWidget {
             child: Center(
               child: Text(
                 text,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
           ),
@@ -179,13 +186,16 @@ class BackspaceKey extends StatelessWidget {
         padding: const EdgeInsets.all(1.0),
         child: Material(
           borderRadius: BorderRadius.circular(5),
-          color: Colors.grey.shade600,
+          color: Theme.of(context).colorScheme.primary,
           child: InkWell(
             onTap: () {
               onBackspace.call();
-            },
-            child: const Center(
-              child: Icon(Icons.backspace),
+              },
+            child: Center(
+              child: Icon(
+                Icons.backspace,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
           ),
         ),
@@ -212,7 +222,7 @@ class SubmitKey extends StatelessWidget {
         padding: const EdgeInsets.all(1.0),
         child: Material(
           borderRadius: BorderRadius.circular(5),
-          color: Colors.grey.shade600,
+          color: Theme.of(context).colorScheme.primary,
           child: InkWell(
             onTap: () {
               onSubmit.call();
