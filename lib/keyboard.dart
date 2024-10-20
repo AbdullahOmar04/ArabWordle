@@ -55,6 +55,7 @@ class CustomKeyboard extends StatelessWidget {
           'ح',
           'ج',
           'إ',
+          'أ',
         ]
             .map((letter) => TextKey(
                 text: letter,
@@ -190,7 +191,7 @@ class BackspaceKey extends StatelessWidget {
           child: InkWell(
             onTap: () {
               onBackspace.call();
-              },
+            },
             child: Center(
               child: Icon(
                 Icons.backspace,

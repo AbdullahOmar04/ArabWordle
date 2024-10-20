@@ -32,14 +32,23 @@ class _MainScreen extends State<MainScreen> {
     _loadWordsFromJson();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateFillColors();
+    _updateKeyColors();
+  }
+
   final List<TextEditingController> _controllers =
       List.generate(30, (index) => TextEditingController());
 
-  List<Color> _fillColors = List.generate(30, (index) => Colors.transparent);
+  final List<Color> _fillColors =
+      List.generate(30, (index) => Colors.transparent);
 
-  List<String> _colorTypes = List.generate(30, (index) => "surface");
+  final List<String> _colorTypes = List.generate(30, (index) => "surface");
 
   List<String> words = [];
+  List<String> c_words = [];
 
   final bool _readOnly = true;
 
@@ -49,19 +58,25 @@ class _MainScreen extends State<MainScreen> {
     final jsonString =
         await rootBundle.loadString('assets/filtered_words.json');
 
+    final jsonString2 =
+        await rootBundle.loadString('assets/filtered_words.json');
+
     final data = json.decode(jsonString);
+    final data2 = json.decode(jsonString2);
 
     setState(() {
       words = List<String>.from(data['words']);
+      c_words = List<String>.from(data['c_words']);
     });
 
     _getRandomWord(words);
+    _getRandomWord(c_words);
   }
 
   void _getRandomWord(List<String> words) {
     final random = Random();
     setState(() {
-      _correctWord = words[random.nextInt(words.length)];
+      _correctWord = c_words[random.nextInt(words.length)];
     });
   }
 
@@ -91,6 +106,7 @@ class _MainScreen extends State<MainScreen> {
                 themeNotifier.setTheme(ThemeMode.light);
               }
               _updateFillColors();
+              _updateKeyColors();
             },
             icon: Icon(
                 Provider.of<ThemeNotifier>(context).themeMode == ThemeMode.light
@@ -168,20 +184,59 @@ class _MainScreen extends State<MainScreen> {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   void _updateFillColors() {
     setState(() {
+      final colorScheme = Theme.of(context).colorScheme;
+
       for (int i = 0; i < _fillColors.length; i++) {
         switch (_colorTypes[i]) {
           case "onPrimary":
-            _fillColors[i] = Theme.of(context).colorScheme.onPrimary;
+            _fillColors[i] = colorScheme.onPrimary;
+            break;
           case "onSecondary":
-            _fillColors[i] = Theme.of(context).colorScheme.onSecondary;
+            _fillColors[i] = colorScheme.onSecondary;
+            break;
           case "onError":
-            _fillColors[i] = Theme.of(context).colorScheme.onError;
+            _fillColors[i] = colorScheme.onError;
+            break;
           default:
-           _fillColors[i] = Colors.transparent;
+            _fillColors[i] = Colors.transparent;
         }
       }
     });
   }
+
+  void _updateKeyColors() {
+    setState(() {
+      final colorScheme =
+          Theme.of(context).colorScheme; // Get the current color scheme
+
+      keyColors.forEach((key, value) {
+        // Find the index of the controller with the matching key, if it exists
+        int index =
+            _controllers.indexWhere((controller) => controller.text == key);
+
+        if (index != -1) {
+          // If a matching controller is found
+          switch (_colorTypes[index]) {
+            case "onPrimary":
+              keyColors[key] = colorScheme.onPrimary;
+              break;
+            case "onSecondary":
+              keyColors[key] = colorScheme.onSecondary;
+              break;
+            case "onError":
+              keyColors[key] = colorScheme.onError;
+              break;
+            default:
+              keyColors[key] = Colors.transparent;
+          }
+        } else {
+          // If no matching controller is found, you can set a default color
+          keyColors[key] = Colors.transparent;
+        }
+      });
+    });
+  }
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _insertText(String myText) {
