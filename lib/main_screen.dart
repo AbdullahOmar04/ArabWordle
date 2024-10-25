@@ -4,9 +4,11 @@ import 'dart:math';
 
 import 'package:arab_wordle_1/keyboard.dart';
 import 'package:arab_wordle_1/themes/theme_provider.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -58,25 +60,23 @@ class _MainScreen extends State<MainScreen> {
     final jsonString =
         await rootBundle.loadString('assets/filtered_words.json');
 
-    final jsonString2 =
-        await rootBundle.loadString('assets/filtered_words.json');
+    final jsonString2 = await rootBundle.loadString('assets/answer_words.json');
 
     final data = json.decode(jsonString);
     final data2 = json.decode(jsonString2);
 
     setState(() {
       words = List<String>.from(data['words']);
-      c_words = List<String>.from(data['c_words']);
+      c_words = List<String>.from(data2['c_words']);
     });
 
-    _getRandomWord(words);
     _getRandomWord(c_words);
   }
 
-  void _getRandomWord(List<String> words) {
+  void _getRandomWord(List<String> woords) {
     final random = Random();
     setState(() {
-      _correctWord = c_words[random.nextInt(words.length)];
+      _correctWord = c_words[random.nextInt(woords.length)];
     });
   }
 
@@ -203,37 +203,37 @@ class _MainScreen extends State<MainScreen> {
       }
     });
   }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _updateKeyColors() {
     setState(() {
-      final colorScheme =
-          Theme.of(context).colorScheme; // Get the current color scheme
+      final colorScheme = Theme.of(context).colorScheme;
 
-      keyColors.forEach((key, value) {
-        // Find the index of the controller with the matching key, if it exists
-        int index =
-            _controllers.indexWhere((controller) => controller.text == key);
+      for (int i = 0; i < _controllers.length; i++) {
+        String letter = _controllers[i].text;
 
-        if (index != -1) {
-          // If a matching controller is found
-          switch (_colorTypes[index]) {
-            case "onPrimary":
-              keyColors[key] = colorScheme.onPrimary;
-              break;
-            case "onSecondary":
-              keyColors[key] = colorScheme.onSecondary;
-              break;
-            case "onError":
-              keyColors[key] = colorScheme.onError;
-              break;
-            default:
-              keyColors[key] = Colors.transparent;
-          }
-        } else {
-          // If no matching controller is found, you can set a default color
-          keyColors[key] = Colors.transparent;
+        // If the text field is empty, continue to the next one
+        if (letter.isEmpty) continue;
+
+        // Determine the color based on the color type
+        Color keyColor;
+        switch (_colorTypes[i]) {
+          case "onPrimary":
+            keyColor = colorScheme.onPrimary;
+            break;
+          case "onSecondary":
+            keyColor = colorScheme.onSecondary;
+            break;
+          case "onError":
+            keyColor = colorScheme.onError;
+            break;
+          default:
+            keyColor = Colors.transparent;
         }
-      });
+
+        // Update the key color for the letter
+        keyColors[letter] = keyColor;
+      }
     });
   }
 
@@ -270,8 +270,30 @@ class _MainScreen extends State<MainScreen> {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _submit() {
+    print(_correctWord);
     if (_currentTextfield % 5 != 0 || _fiveLettersStop != 5) {
-      print("Please enter a 5-letter word");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          dismissDirection: DismissDirection.horizontal,
+          duration: const Duration(seconds: 2),
+          content: Text(
+            "الرجاء إدخال كلمة تتكون من 5 أحرف",
+            style: TextStyle(color: Colors.grey.shade200, fontSize: 20),
+            textAlign: TextAlign.center,
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            right: 20,
+            left: 20,
+          ),
+        ),
+      );
+
       return;
     }
 
@@ -324,12 +346,40 @@ class _MainScreen extends State<MainScreen> {
     if (_currentWord == _correctWord) {
       setState(() {
         for (int k = startIndex; k <= endIndex; k++) {
+          _guessedLetter = _controllers[k].text;
           _fillColors[k] = Theme.of(context).colorScheme.onPrimary;
+          keyColors[_guessedLetter] = Theme.of(context).colorScheme.onPrimary;
           _colorTypes[k] = "onPrimary";
         }
-        print("correct word");
         gameWon = true;
       });
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.grey.shade600,
+          title: const Text(
+            'صحيح',
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+          content: RichText(
+            text: TextSpan(
+              children: [
+                const TextSpan(text: 'تعرف على معنى '),
+                TextSpan(
+                  text: 'الكلمة',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  recognizer: TapGestureRecognizer()..onTap = () {
+                    launchUrl(Uri.parse('https://www.almaany.com/ar/dict/ar-ar/$_correctWord/?'));
+                  } 
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     } else {
       for (int i = startIndex, j = 0; i <= endIndex; i++, j++) {
         _guessedLetter = _controllers[i].text;
@@ -337,8 +387,8 @@ class _MainScreen extends State<MainScreen> {
         if (_guessedLetter == _deconstructedCorrectWord[j]) {
           setState(() {
             _fillColors[i] = Theme.of(context).colorScheme.onPrimary;
-            _colorTypes[i] = "onPrimary";
             keyColors[_guessedLetter] = Theme.of(context).colorScheme.onPrimary;
+            _colorTypes[i] = "onPrimary";
           });
           letterCounts[_guessedLetter] = letterCounts[_guessedLetter]! - 1;
         }
