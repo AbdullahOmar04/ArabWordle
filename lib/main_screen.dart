@@ -367,14 +367,19 @@ class _MainScreen extends State<MainScreen> {
           content: RichText(
             text: TextSpan(
               children: [
-                const TextSpan(text: 'تعرف على معنى '),
+                const TextSpan(
+                    text: 'تعرف على معنى الكلمة:',
+                    style: TextStyle(fontSize: 20)),
                 TextSpan(
-                  text: 'الكلمة',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                  recognizer: TapGestureRecognizer()..onTap = () {
-                    launchUrl(Uri.parse('https://www.almaany.com/ar/dict/ar-ar/$_correctWord/?'));
-                  } 
-                ),
+                    text: _correctWord,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 20,
+                        ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        launchUrl(Uri.parse(
+                            'https://www.almaany.com/ar/dict/ar-ar/$_correctWord/?'));
+                      }),
               ],
             ),
           ),
