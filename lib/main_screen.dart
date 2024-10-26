@@ -270,7 +270,6 @@ class _MainScreen extends State<MainScreen> {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _submit() {
-    print(_correctWord);
     if (_currentTextfield % 5 != 0 || _fiveLettersStop != 5) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -356,25 +355,26 @@ class _MainScreen extends State<MainScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: Colors.grey.shade600,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           title: const Text(
             'صحيح',
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              color: Colors.white,
-            ),
+            textAlign: TextAlign.center,
           ),
           content: RichText(
             text: TextSpan(
               children: [
-                const TextSpan(
-                    text: 'تعرف على معنى الكلمة:',
-                    style: TextStyle(fontSize: 20)),
+                TextSpan(
+                    text: 'تعرف على معنى كلمة',
+                    style: TextStyle(
+                        fontSize: 20,
+                        color: Theme.of(context).colorScheme.onSurface)),
                 TextSpan(
                     text: _correctWord,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 20,
-                        ),
+                    style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.blue.shade300),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
                         launchUrl(Uri.parse(
