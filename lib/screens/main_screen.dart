@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:arab_wordle_1/keyboard.dart';
+import 'package:arab_wordle_1/screens/3_letter_screen.dart';
+import 'package:arab_wordle_1/screens/4_letter_screen.dart';
 import 'package:arab_wordle_1/themes/theme_provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -57,10 +59,11 @@ class _MainScreen extends State<MainScreen> {
   Map<String, Color> keyColors = {};
 
   Future<void> _loadWordsFromJson() async {
-    final jsonString =
-        await rootBundle.loadString('assets/filtered_words.json');
+    final jsonString = await rootBundle
+        .loadString('assets/words/5_letters/5_letter_words_all.json');
 
-    final jsonString2 = await rootBundle.loadString('assets/answer_words.json');
+    final jsonString2 = await rootBundle
+        .loadString('assets/words/5_letters/5_letter_answers.json');
 
     final data = json.decode(jsonString);
     final data2 = json.decode(jsonString2);
@@ -85,6 +88,76 @@ class _MainScreen extends State<MainScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).colorScheme.surface,
+      drawer: Drawer(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/Mountains.png'),
+                ),
+              ),
+              child: null,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: ListTile(
+                title: const Text(
+                  '٣  أحرف',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  textAlign: TextAlign.center,
+                ),
+                tileColor: Theme.of(context).colorScheme.primary,
+                shape: const OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(12),
+                  ),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return const ThreeLetterScreen();
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: ListTile(
+                title: const Text(
+                  '٤ أحرف',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  textAlign: TextAlign.center,
+                ),
+                tileColor: Theme.of(context).colorScheme.primary,
+                shape: const OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(12),
+                  ),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return const FourLetterScreen();
+                      },
+                    ),
+                  );
+                },
+              ),
+            )
+          ],
+        ),
+      ),
       appBar: AppBar(
         centerTitle: true,
         title: Text(
@@ -182,6 +255,7 @@ class _MainScreen extends State<MainScreen> {
   }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   void _updateFillColors() {
     setState(() {
       final colorScheme = Theme.of(context).colorScheme;
@@ -203,19 +277,19 @@ class _MainScreen extends State<MainScreen> {
       }
     });
   }
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _updateKeyColors() {
     setState(() {
+      keyColors.clear();
       final colorScheme = Theme.of(context).colorScheme;
 
-      for (int i = 0; i < _controllers.length; i++) {
+      for (int i = 0; i < _currentTextfield; i++) {
         String letter = _controllers[i].text;
 
-        // If the text field is empty, continue to the next one
         if (letter.isEmpty) continue;
 
-        // Determine the color based on the color type
         Color keyColor;
         switch (_colorTypes[i]) {
           case "onPrimary":
@@ -228,10 +302,9 @@ class _MainScreen extends State<MainScreen> {
             keyColor = colorScheme.onError;
             break;
           default:
-            keyColor = Colors.transparent;
+            keyColor = Theme.of(context).colorScheme.primary;
         }
 
-        // Update the key color for the letter
         keyColors[letter] = keyColor;
       }
     });
@@ -270,6 +343,7 @@ class _MainScreen extends State<MainScreen> {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _submit() {
+    print(_correctWord);
     if (_currentTextfield % 5 != 0 || _fiveLettersStop != 5) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -357,16 +431,16 @@ class _MainScreen extends State<MainScreen> {
         builder: (context) => AlertDialog(
           backgroundColor: Theme.of(context).colorScheme.surface,
           title: const Text(
-            'صحيح',
+            '!أحسنت',
             textAlign: TextAlign.center,
           ),
           content: RichText(
             text: TextSpan(
               children: [
                 TextSpan(
-                    text: 'تعرف على معنى كلمة',
+                    text: ' تعرف على معنى كلمة',
                     style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         color: Theme.of(context).colorScheme.onSurface)),
                 TextSpan(
                     text: _correctWord,
@@ -436,7 +510,7 @@ class _MainScreen extends State<MainScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            backgroundColor: Colors.grey.shade600,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             title: const Text(
               'كشل',
               textAlign: TextAlign.right,

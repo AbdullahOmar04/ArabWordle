@@ -1,4 +1,4 @@
-import 'package:arab_wordle_1/main_screen.dart';
+import 'package:arab_wordle_1/screens/main_screen.dart';
 import 'package:arab_wordle_1/themes/theme_provider.dart';
 import 'package:arab_wordle_1/themes/themes.dart';
 import 'package:provider/provider.dart';

@@ -21,5 +21,10 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/filtered_words.json
-    - assets/answer_words.json
+    - assets/words/5_letters/5_letter_words_all.json
+    - assets/words/5_letters/5_letter_answers.json
+    - assets/words/4_letters/4_letter_words_all.json
+    - assets/words/4_letters/4_letter_answers.json
+    - assets/words/3_letters/3_letter_words_all.json
+    - assets/words/3_letters/3_letter_answers.json
+    - assets/images/Mountains.png
