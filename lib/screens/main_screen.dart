@@ -21,7 +21,7 @@ class MainScreen extends StatefulWidget {
   }
 }
 
-class _MainScreen extends State<MainScreen> {
+class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
   bool gameWon = false;
 
   int _currentTextfield = 0;
@@ -29,19 +29,6 @@ class _MainScreen extends State<MainScreen> {
   int _fiveLettersStop = 0;
 
   String _correctWord = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadWordsFromJson();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _updateFillColors();
-    _updateKeyColors();
-  }
 
   final List<TextEditingController> _controllers =
       List.generate(30, (index) => TextEditingController());
@@ -57,6 +44,89 @@ class _MainScreen extends State<MainScreen> {
   final bool _readOnly = true;
 
   Map<String, Color> keyColors = {};
+
+  final List<AnimationController> _shakeControllers = [];
+  final List<Animation<double>> _shakeAnimations = [];
+
+  final List<AnimationController> _scaleControllers = [];
+  final List<Animation<double>> _scaleAnimations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWordsFromJson();
+
+    // Initialize an AnimationController and Animation for each row
+    for (int i = 0; i < 6; i++) {
+      final controller = AnimationController(
+        duration: const Duration(milliseconds: 500),
+        vsync: this,
+      );
+
+      final animation = Tween<double>(begin: 0, end: 10).animate(
+        CurvedAnimation(
+          parent: controller,
+          curve: Curves.elasticIn,
+        ),
+      );
+
+      _shakeControllers.add(controller);
+      _shakeAnimations.add(animation);
+    }
+
+    for (int i = 0; i < 30; i++) {
+      final controller = AnimationController(
+        duration: const Duration(milliseconds: 200),
+        vsync: this,
+      );
+
+      final animation = Tween<double>(begin: 1.0, end: 1.1).animate(
+        CurvedAnimation(
+          parent: controller,
+          curve: Curves.easeOut,
+        ),
+      )..addStatusListener((status) {
+          if (status == AnimationStatus.completed) {
+            controller.reverse(); // Return to normal size after popping up
+          }
+        });
+
+      _scaleControllers.add(controller);
+      _scaleAnimations.add(animation);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _shakeControllers) {
+      controller.dispose();
+    }
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var controller in _scaleControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _shakeCurrentRow() {
+    int currentRow = (_currentTextfield / 5).floor();
+    _shakeControllers[currentRow].forward(from: 0);
+  }
+
+  void _triggerPopUp(int index) {
+    if (index >= 0 && index < _scaleControllers.length) {
+      _scaleControllers[index].forward();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateFillColors();
+    _updateKeyColors();
+  }
 
   Future<void> _loadWordsFromJson() async {
     final jsonString = await rootBundle
@@ -196,57 +266,73 @@ class _MainScreen extends State<MainScreen> {
         children: [
           const SizedBox(height: 10),
           for (int i = 0; i < 6; i++)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (int j = 4; j >= 0; j--)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: SizedBox(
-                      height: 90,
-                      width: 60,
-                      child: TextField(
-                        controller: _controllers[i * 5 + j],
-                        readOnly: _readOnly,
-                        textAlign: TextAlign.center,
-                        maxLength: 1,
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(1),
-                        ],
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.onSurface),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.onSurface),
-                          ),
-                          fillColor: _fillColors[i * 5 + j],
-                          filled: true,
-                          counterText: '',
-                          border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(5),
+            AnimatedBuilder(
+              animation: _shakeAnimations[i],
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(
+                      _shakeAnimations[i].value *
+                          sin(_shakeControllers[i].value * 2 * pi),
+                      0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (int j = 4; j >= 0; j--)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: SizedBox(
+                            height: 90,
+                            width: 60,
+                            child: AnimatedBuilder(
+                              animation: _scaleAnimations[i * 5 + j],
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: _scaleAnimations[i * 5 + j].value,
+                                  child: child,
+                                );
+                              },
+                              child: TextField(
+                                controller: _controllers[i * 5 + j],
+                                readOnly: _readOnly,
+                                textAlign: TextAlign.center,
+                                maxLength: 1,
+                                inputFormatters: [
+                                  LengthLimitingTextInputFormatter(1)
+                                ],
+                                decoration: InputDecoration(
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface),
+                                  ),
+                                  fillColor: _fillColors[i * 5 + j],
+                                  filled: true,
+                                  counterText: '',
+                                  border: const OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(5)),
+                                  ),
+                                ),
+                              ),
                             ),
-                            borderSide: BorderSide(width: 20),
                           ),
                         ),
-                      ),
-                    ),
+                    ],
                   ),
-              ],
+                );
+              },
             ),
           CustomKeyboard(
-            onTextInput: (myText) {
-              _insertText(myText);
-            },
-            onBackspace: () {
-              _backspace();
-            },
-            onSubmit: () {
-              _submit();
-            },
+            onTextInput: (myText) => _insertText(myText),
+            onBackspace: _backspace,
+            onSubmit: _submit,
             keyColors: keyColors,
           ),
         ],
@@ -319,10 +405,9 @@ class _MainScreen extends State<MainScreen> {
       controller.text = myText;
 
       setState(() {
+        _triggerPopUp(_currentTextfield);
         _currentTextfield++;
         _fiveLettersStop++;
-
-        print("textfield = $_currentTextfield");
       });
     }
   }
@@ -345,6 +430,7 @@ class _MainScreen extends State<MainScreen> {
   void _submit() {
     print(_correctWord);
     if (_currentTextfield % 5 != 0 || _fiveLettersStop != 5) {
+      _shakeCurrentRow();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Theme.of(context).colorScheme.error,
@@ -513,19 +599,31 @@ class _MainScreen extends State<MainScreen> {
             backgroundColor: Theme.of(context).colorScheme.surface,
             title: const Text(
               'كشل',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                color: Colors.white,
-              ),
+              textAlign: TextAlign.center,
             ),
             content: RichText(
+              textAlign: TextAlign.center,
               text: TextSpan(
                 children: [
-                  const TextSpan(text: 'الكلمة الصحيحة هي: '),
                   TextSpan(
-                    text: _correctWord,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    text: 'الكلمة الصحيحة هي: ',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 16,
+                    ),
                   ),
+                  TextSpan(
+                      text: _correctWord,
+                      style: TextStyle(
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.blue.shade300),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          launchUrl(Uri.parse(
+                              'https://www.almaany.com/ar/dict/ar-ar/$_correctWord/?'));
+                        }),
                 ],
               ),
             ),
@@ -539,12 +637,4 @@ class _MainScreen extends State<MainScreen> {
   }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  @override
-  void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
 }
