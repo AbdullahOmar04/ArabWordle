@@ -12,7 +12,9 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ThreeLetterScreen extends StatefulWidget {
-  const ThreeLetterScreen({super.key});
+  const ThreeLetterScreen({super.key, required this.isHardMode});
+
+  final bool isHardMode;
 
   @override
   State<StatefulWidget> createState() {
@@ -31,12 +33,12 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
   String _correctWord = '';
 
   final List<TextEditingController> _controllers =
-      List.generate(18, (index) => TextEditingController());
+      List.generate(21, (index) => TextEditingController());
 
   final List<Color> _fillColors =
-      List.generate(18, (index) => Colors.transparent);
+      List.generate(21, (index) => Colors.transparent);
 
-  final List<String> _colorTypes = List.generate(18, (index) => "surface");
+  final List<String> _colorTypes = List.generate(21, (index) => "surface");
 
   List<String> words = [];
   List<String> c_words = [];
@@ -56,7 +58,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
     super.initState();
     _loadWordsFromJson();
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 7; i++) {
       final controller = AnimationController(
         duration: const Duration(milliseconds: 500),
         vsync: this,
@@ -73,7 +75,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
       _shakeAnimations.add(animation);
     }
 
-    for (int i = 0; i < 18; i++) {
+    for (int i = 0; i < 21; i++) {
       final controller = AnimationController(
         duration: const Duration(milliseconds: 200),
         vsync: this,
@@ -193,8 +195,8 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
       ),
       body: Column(
         children: [
-          const SizedBox(height: 10),
-          for (int i = 0; i < 6; i++)
+          const Spacer(),
+          for (int i = 0; i < 7; i++)
             AnimatedBuilder(
               animation: _shakeAnimations[i],
               builder: (context, child) {
@@ -208,9 +210,9 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
                     children: [
                       for (int j = 2; j >= 0; j--)
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 3.0),
                           child: SizedBox(
-                            height: 90,
+                            height: 65,
                             width: 60,
                             child: AnimatedBuilder(
                               animation: _scaleAnimations[i * 3 + j],
@@ -222,6 +224,8 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
                               },
                               child: TextField(
                                 controller: _controllers[i * 3 + j],
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
                                 readOnly: _readOnly,
                                 textAlign: TextAlign.center,
                                 maxLength: 1,
@@ -260,6 +264,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
                 );
               },
             ),
+          const Spacer(),
           CustomKeyboard(
             onTextInput: (myText) => _insertText(myText),
             onBackspace: _backspace,
@@ -330,7 +335,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _insertText(String myText) {
-    if ((_currentTextfield < 18 && _fiveLettersStop < 3) && gameWon == false) {
+    if ((_currentTextfield < 21 && _fiveLettersStop < 3) && gameWon == false) {
       final controller = _controllers[_currentTextfield];
 
       controller.text = myText;
@@ -452,10 +457,11 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
             textAlign: TextAlign.center,
           ),
           content: RichText(
+            textAlign: TextAlign.center,
             text: TextSpan(
               children: [
                 TextSpan(
-                    text: ' تعرف على معنى كلمة',
+                    text: 'تعرف على معنى كلمة ',
                     style: TextStyle(
                         fontSize: 16,
                         color: Theme.of(context).colorScheme.onSurface)),
@@ -464,7 +470,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
                     style: TextStyle(
                         decoration: TextDecoration.underline,
                         fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontSize: 16,
                         color: Colors.blue.shade300),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
@@ -523,7 +529,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
         }
       }
 
-      if (_currentTextfield == 18 && gameWon == false) {
+      if (_currentTextfield == 21 && gameWon == false) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(

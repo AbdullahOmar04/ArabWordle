@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomKeyboard extends StatelessWidget {
   const CustomKeyboard({
@@ -22,19 +23,20 @@ class CustomKeyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      child: Container(
-        padding: const EdgeInsets.all(5.0),
-        alignment: Alignment.center,
-        color: Theme.of(context).colorScheme.surface,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            buildRowOne(context),
-            buildRowTwo(context),
-            buildRowThree(context)
-          ],
-        ),
+    double screenHeight = MediaQuery.of(context).size.height;
+    double keyboardHeight = screenHeight * 0.25;
+    return Container(
+      height: keyboardHeight,
+      padding: const EdgeInsets.all(5.0),
+      alignment: Alignment.center,
+      color: Theme.of(context).colorScheme.surface,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          buildRowOne(context),
+          buildRowTwo(context),
+          buildRowThree(context)
+        ],
       ),
     );
   }
@@ -153,6 +155,7 @@ class TextKey extends StatelessWidget {
           child: InkWell(
             onTap: () {
               onTextInput.call(text);
+              HapticFeedback.lightImpact();
             },
             child: Center(
               child: Text(
@@ -191,6 +194,7 @@ class BackspaceKey extends StatelessWidget {
           child: InkWell(
             onTap: () {
               onBackspace.call();
+              HapticFeedback.lightImpact();
             },
             child: Center(
               child: Icon(
@@ -227,6 +231,7 @@ class SubmitKey extends StatelessWidget {
           child: InkWell(
             onTap: () {
               onSubmit.call();
+              HapticFeedback.lightImpact();
             },
             child: const Center(
               child: Text(

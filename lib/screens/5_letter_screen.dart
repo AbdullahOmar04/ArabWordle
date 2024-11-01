@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:arab_wordle_1/keyboard.dart';
-import 'package:arab_wordle_1/screens/3_letter_screen.dart';
-import 'package:arab_wordle_1/screens/4_letter_screen.dart';
 import 'package:arab_wordle_1/themes/theme_provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -12,16 +10,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class FiveLetterScreen extends StatefulWidget {
+  const FiveLetterScreen({super.key, required this.isHardMode});
+  
+  final bool isHardMode;
 
   @override
   State<StatefulWidget> createState() {
-    return _MainScreen();
+    return _FiveLetterScreen();
   }
 }
 
-class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
+class _FiveLetterScreen extends State<FiveLetterScreen>
+    with TickerProviderStateMixin {
   bool gameWon = false;
 
   int _currentTextfield = 0;
@@ -31,12 +32,12 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
   String _correctWord = '';
 
   final List<TextEditingController> _controllers =
-      List.generate(30, (index) => TextEditingController());
+      List.generate(35, (index) => TextEditingController());
 
   final List<Color> _fillColors =
-      List.generate(30, (index) => Colors.transparent);
+      List.generate(35, (index) => Colors.transparent);
 
-  final List<String> _colorTypes = List.generate(30, (index) => "surface");
+  final List<String> _colorTypes = List.generate(35, (index) => "surface");
 
   List<String> words = [];
   List<String> c_words = [];
@@ -57,7 +58,7 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
     _loadWordsFromJson();
 
     // Initialize an AnimationController and Animation for each row
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 7; i++) {
       final controller = AnimationController(
         duration: const Duration(milliseconds: 500),
         vsync: this,
@@ -74,7 +75,7 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
       _shakeAnimations.add(animation);
     }
 
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 35; i++) {
       final controller = AnimationController(
         duration: const Duration(milliseconds: 200),
         vsync: this,
@@ -158,80 +159,10 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      drawer: Drawer(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/Mountains.png'),
-                ),
-              ),
-              child: null,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: ListTile(
-                title: const Text(
-                  '٣  أحرف',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                  textAlign: TextAlign.center,
-                ),
-                tileColor: Theme.of(context).colorScheme.primary,
-                shape: const OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(12),
-                  ),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return const ThreeLetterScreen();
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: ListTile(
-                title: const Text(
-                  '٤ أحرف',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                  textAlign: TextAlign.center,
-                ),
-                tileColor: Theme.of(context).colorScheme.primary,
-                shape: const OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(12),
-                  ),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return const FourLetterScreen();
-                      },
-                    ),
-                  );
-                },
-              ),
-            )
-          ],
-        ),
-      ),
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          "ووردل",
+          widget.isHardMode ? 'hardmode' : 'easy',
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 32,
@@ -264,8 +195,8 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
       ),
       body: Column(
         children: [
-          const SizedBox(height: 10),
-          for (int i = 0; i < 6; i++)
+          const Spacer(),
+          for (int i = 0; i < 7; i++)
             AnimatedBuilder(
               animation: _shakeAnimations[i],
               builder: (context, child) {
@@ -279,10 +210,10 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
                     children: [
                       for (int j = 4; j >= 0; j--)
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 3.0),
                           child: SizedBox(
-                            height: 90,
-                            width: 60,
+                            height: 65,
+                            width: 65,
                             child: AnimatedBuilder(
                               animation: _scaleAnimations[i * 5 + j],
                               builder: (context, child) {
@@ -293,6 +224,8 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
                               },
                               child: TextField(
                                 controller: _controllers[i * 5 + j],
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
                                 readOnly: _readOnly,
                                 textAlign: TextAlign.center,
                                 maxLength: 1,
@@ -329,6 +262,7 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
                 );
               },
             ),
+          const Spacer(),
           CustomKeyboard(
             onTextInput: (myText) => _insertText(myText),
             onBackspace: _backspace,
@@ -399,7 +333,7 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   void _insertText(String myText) {
-    if ((_currentTextfield < 30 && _fiveLettersStop < 5) && gameWon == false) {
+    if ((_currentTextfield < 35 && _fiveLettersStop < 5) && gameWon == false) {
       final controller = _controllers[_currentTextfield];
 
       controller.text = myText;
@@ -431,6 +365,8 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
     print(_correctWord);
     if (_currentTextfield % 5 != 0 || _fiveLettersStop != 5) {
       _shakeCurrentRow();
+      ScaffoldMessenger.of(context).clearSnackBars();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Theme.of(context).colorScheme.error,
@@ -477,6 +413,8 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
     _currentWord = _currentWordList.join("");
 
     if (!words.contains(_currentWord)) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Theme.of(context).colorScheme.error,
@@ -521,10 +459,11 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
             textAlign: TextAlign.center,
           ),
           content: RichText(
+            textAlign: TextAlign.center,
             text: TextSpan(
               children: [
                 TextSpan(
-                    text: ' تعرف على معنى كلمة',
+                    text: 'تعرف على معنى كلمة ',
                     style: TextStyle(
                         fontSize: 16,
                         color: Theme.of(context).colorScheme.onSurface)),
@@ -533,7 +472,7 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
                     style: TextStyle(
                         decoration: TextDecoration.underline,
                         fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontSize: 16,
                         color: Colors.blue.shade300),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
@@ -592,7 +531,7 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
         }
       }
 
-      if (_currentTextfield == 30 && gameWon == false) {
+      if (_currentTextfield == 35 && gameWon == false) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
