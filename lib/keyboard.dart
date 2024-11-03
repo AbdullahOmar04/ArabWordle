@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomKeyboard extends StatelessWidget {
   const CustomKeyboard({
@@ -153,9 +154,9 @@ class TextKey extends StatelessWidget {
           borderRadius: BorderRadius.circular(5),
           color: color,
           child: InkWell(
-            onTap: () {
+            onTap: () async {
               onTextInput.call(text);
-              HapticFeedback.lightImpact();
+              triggerHapticFeedback();
             },
             child: Center(
               child: Text(
@@ -192,9 +193,9 @@ class BackspaceKey extends StatelessWidget {
           borderRadius: BorderRadius.circular(5),
           color: Theme.of(context).colorScheme.primary,
           child: InkWell(
-            onTap: () {
+            onTap: () async {
               onBackspace.call();
-              HapticFeedback.lightImpact();
+              triggerHapticFeedback();
             },
             child: Center(
               child: Icon(
@@ -229,9 +230,9 @@ class SubmitKey extends StatelessWidget {
           borderRadius: BorderRadius.circular(5),
           color: Theme.of(context).colorScheme.primary,
           child: InkWell(
-            onTap: () {
+            onTap: () async {
               onSubmit.call();
-              HapticFeedback.lightImpact();
+              triggerHapticFeedback();
             },
             child: const Center(
               child: Text(
@@ -245,3 +246,13 @@ class SubmitKey extends StatelessWidget {
     );
   }
 }
+
+Future<void> triggerHapticFeedback() async {
+  final prefs = await SharedPreferences.getInstance();
+  bool isHapticEnabled = prefs.getBool('isHapticEnabled') ?? true;
+
+  if (!isHapticEnabled) return; // Skip if haptic feedback is disabled
+
+  HapticFeedback.lightImpact(); // Trigger haptic feedback if enabled
+}
+

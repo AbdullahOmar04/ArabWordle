@@ -7,13 +7,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FourLetterScreen extends StatefulWidget {
   const FourLetterScreen({super.key, required this.isHardMode});
 
   final bool isHardMode;
-  
+
   @override
   State<StatefulWidget> createState() {
     return _FourLetterScreen();
@@ -111,6 +112,17 @@ class _FourLetterScreen extends State<FourLetterScreen>
   void _shakeCurrentRow() {
     int currentRow = (_currentTextfield / 4).floor();
     _shakeControllers[currentRow].forward(from: 0);
+  }
+
+  Future<void> _vibrateTwice() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool isHapticEnabled = prefs.getBool('isHapticEnabled') ?? true;
+
+    if (!isHapticEnabled) return; // Skip if haptic feedback is disabled
+
+    HapticFeedback.lightImpact();
+    await Future.delayed(const Duration(milliseconds: 100));
+    HapticFeedback.lightImpact();
   }
 
   void _triggerPopUp(int index) {
@@ -364,6 +376,8 @@ class _FourLetterScreen extends State<FourLetterScreen>
     print(_correctWord);
     if (_currentTextfield % 4 != 0 || _fiveLettersStop != 4) {
       _shakeCurrentRow();
+      _vibrateTwice();
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Theme.of(context).colorScheme.error,
@@ -410,6 +424,8 @@ class _FourLetterScreen extends State<FourLetterScreen>
     currentWord = currentWordList.join("");
 
     if (!words.contains(currentWord)) {
+      _vibrateTwice();
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Theme.of(context).colorScheme.error,
