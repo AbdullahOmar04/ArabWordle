@@ -1,6 +1,8 @@
+import 'package:arab_wordle_1/main.dart';
 import 'package:arab_wordle_1/screens/3_letter_screen.dart';
 import 'package:arab_wordle_1/screens/4_letter_screen.dart';
 import 'package:arab_wordle_1/screens/5_letter_screen.dart';
+import 'package:arab_wordle_1/themes/app_localization.dart';
 import 'package:arab_wordle_1/themes/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -47,9 +49,10 @@ class _MainMenuState extends State<MainMenu> {
                   },
                 ),
                 const SizedBox(width: 10),
-                const Text(
-                  "المستوى الصعب",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                Text(
+                  AppLocalizations.of(context).translate('hard_mode'),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 20),
                 ),
               ],
             ),
@@ -57,8 +60,9 @@ class _MainMenuState extends State<MainMenu> {
 
             // Mode Selection Buttons
             _buildModeButton(
-                context, 'وضع ٣ أحرف', Theme.of(context).colorScheme.secondary,
-                () {
+                context,
+                AppLocalizations.of(context).translate('3_letter_mode'),
+                Theme.of(context).colorScheme.secondary, () {
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -69,8 +73,9 @@ class _MainMenuState extends State<MainMenu> {
             }),
             const SizedBox(height: 20),
             _buildModeButton(
-                context, 'وضع ٤ أحرف', Theme.of(context).colorScheme.secondary,
-                () {
+                context,
+                AppLocalizations.of(context).translate('4_letter_mode'),
+                Theme.of(context).colorScheme.secondary, () {
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -81,8 +86,9 @@ class _MainMenuState extends State<MainMenu> {
             }),
             const SizedBox(height: 20),
             _buildModeButton(
-                context, 'وضع ٥ أحرف', Theme.of(context).colorScheme.secondary,
-                () {
+                context,
+                AppLocalizations.of(context).translate('5_letter_mode'),
+                Theme.of(context).colorScheme.secondary, () {
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -143,7 +149,7 @@ class _MainMenuState extends State<MainMenu> {
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
             title: Text(
-              'الإعدادات',
+              AppLocalizations.of(context).translate('settings'),
               textAlign: TextAlign.right,
               style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface, fontSize: 30),
@@ -151,21 +157,33 @@ class _MainMenuState extends State<MainMenu> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Locale newLocale =
+                        Localizations.localeOf(context).languageCode == 'en'
+                            ? const Locale('ar')
+                            : const Locale('en');
+                    MyApp.setLocale(context, newLocale);
+                  },
+                  child: Text(
+                    AppLocalizations.of(context).translate('choose_lang'),
+                  ),
+                ),
                 ListTile(
                   title: Text(
-                    'تمكين الاهتزاز',
+                    AppLocalizations.of(context).translate('enable_vibration'),
                     textAlign: TextAlign.right,
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface),
                   ),
                   trailing: Switch(
+                    activeColor: Theme.of(context).colorScheme.onSurface,
                     value: isHapticEnabled,
                     onChanged: (bool value) async {
                       setState(() {
                         isHapticEnabled = value;
                       });
                       await prefs.setBool('isHapticEnabled', isHapticEnabled);
-                      print('Haptic feedback set to: $isHapticEnabled');
                     },
                   ),
                 ),
@@ -177,7 +195,7 @@ class _MainMenuState extends State<MainMenu> {
                       builder: (context) {
                         return AlertDialog(
                           title: Text(
-                            'وضع التطبيق',
+                            AppLocalizations.of(context).translate('app_mode'),
                             textAlign: TextAlign.right,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onSurface,
@@ -189,7 +207,8 @@ class _MainMenuState extends State<MainMenu> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               RadioListTile<ThemeMode>(
-                                  title: const Text('الوضع الليلي'),
+                                  title: Text(AppLocalizations.of(context)
+                                      .translate('dark_mode')),
                                   value: ThemeMode.dark,
                                   groupValue: selectedThemeMode,
                                   onChanged: (ThemeMode? value) {
@@ -199,7 +218,8 @@ class _MainMenuState extends State<MainMenu> {
                                     });
                                   }),
                               RadioListTile<ThemeMode>(
-                                title: const Text('الوضع الصباحي'),
+                                title: Text(AppLocalizations.of(context)
+                                    .translate('light_mode')),
                                 value: ThemeMode.light,
                                 groupValue: themeNotifier.themeMode,
                                 onChanged: (ThemeMode? value) {
@@ -210,7 +230,8 @@ class _MainMenuState extends State<MainMenu> {
                                 },
                               ),
                               RadioListTile<ThemeMode>(
-                                title: const Text('اعداد النظام'),
+                                title: Text(AppLocalizations.of(context)
+                                    .translate('system_mode')),
                                 value: ThemeMode.system,
                                 groupValue: themeNotifier.themeMode,
                                 onChanged: (ThemeMode? value) {
@@ -225,9 +246,9 @@ class _MainMenuState extends State<MainMenu> {
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
-                              child: const Text(
-                                'إغلاق',
-                                style: TextStyle(fontSize: 18),
+                              child: Text(
+                                AppLocalizations.of(context).translate('close'),
+                                style: const TextStyle(fontSize: 18),
                               ),
                             )
                           ],
@@ -235,7 +256,8 @@ class _MainMenuState extends State<MainMenu> {
                       },
                     );
                   },
-                  child: const Text('اختر السمة'),
+                  child: Text(
+                      AppLocalizations.of(context).translate('choose_theme')),
                 ),
               ],
             ),
@@ -244,9 +266,9 @@ class _MainMenuState extends State<MainMenu> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: const Text(
-                  'إغلاق',
-                  style: TextStyle(fontSize: 18),
+                child: Text(
+                  AppLocalizations.of(context).translate('close'),
+                  style: const TextStyle(fontSize: 18),
                 ),
               )
             ],

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:arab_wordle_1/keyboard.dart';
+import 'package:arab_wordle_1/themes/app_localization.dart';
 import 'package:arab_wordle_1/themes/theme_provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -174,7 +175,9 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          "ووردل",
+         widget.isHardMode
+              ? AppLocalizations.of(context).translate('hard_mode_title')
+              : AppLocalizations.of(context).translate('normal_mode_title'),
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 32,
@@ -387,7 +390,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
           dismissDirection: DismissDirection.horizontal,
           duration: const Duration(seconds: 2),
           content: Text(
-            "الرجاء إدخال كلمة تتكون من 3 أحرف",
+           AppLocalizations.of(context).translate('five_letter_error'),
             style: TextStyle(color: Colors.grey.shade200, fontSize: 20),
             textAlign: TextAlign.center,
           ),
@@ -435,7 +438,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
           dismissDirection: DismissDirection.horizontal,
           duration: const Duration(seconds: 2),
           content: Text(
-            "الكلمة ليست في قاموس اللعبة",
+            AppLocalizations.of(context).translate('not_in_library'),
             style: TextStyle(color: Colors.grey.shade200, fontSize: 20),
             textAlign: TextAlign.center,
           ),
@@ -468,8 +471,8 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: Theme.of(context).colorScheme.surface,
-          title: const Text(
-            '!أحسنت',
+          title: Text(
+           AppLocalizations.of(context).translate('correct_title'),
             textAlign: TextAlign.center,
           ),
           content: RichText(
@@ -477,7 +480,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
             text: TextSpan(
               children: [
                 TextSpan(
-                    text: 'تعرف على معنى كلمة ',
+                    text: AppLocalizations.of(context).translate('learn_word'),
                     style: TextStyle(
                         fontSize: 16,
                         color: Theme.of(context).colorScheme.onSurface)),
@@ -550,8 +553,8 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: Theme.of(context).colorScheme.surface,
-            title: const Text(
-              'كشل',
+            title: Text(
+              AppLocalizations.of(context).translate('incorrect'),
               textAlign: TextAlign.center,
             ),
             content: RichText(
@@ -559,7 +562,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: 'الكلمة الصحيحة هي: ',
+                    text: AppLocalizations.of(context).translate('correct_word'),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 16,

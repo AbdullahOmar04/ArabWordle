@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:arab_wordle_1/keyboard.dart';
+import 'package:arab_wordle_1/themes/app_localization.dart';
 import 'package:arab_wordle_1/themes/theme_provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -173,7 +174,9 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          widget.isHardMode ? 'hardmode' : 'easy',
+          widget.isHardMode
+              ? AppLocalizations.of(context).translate('hard_mode_title')
+              : AppLocalizations.of(context).translate('normal_mode_title'),
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 32,
@@ -384,7 +387,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
           dismissDirection: DismissDirection.horizontal,
           duration: const Duration(seconds: 2),
           content: Text(
-            "الرجاء إدخال كلمة تتكون من 5 أحرف",
+            AppLocalizations.of(context).translate('five_letter_error'),
             style: TextStyle(color: Colors.grey.shade200, fontSize: 20),
             textAlign: TextAlign.center,
           ),
@@ -432,7 +435,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
           dismissDirection: DismissDirection.horizontal,
           duration: const Duration(seconds: 2),
           content: Text(
-            "الكلمة ليست في قاموس اللعبة",
+            AppLocalizations.of(context).translate('not_in_library'),
             style: TextStyle(color: Colors.grey.shade200, fontSize: 20),
             textAlign: TextAlign.center,
           ),
@@ -465,8 +468,8 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: Theme.of(context).colorScheme.surface,
-          title: const Text(
-            '!أحسنت',
+          title: Text(
+            AppLocalizations.of(context).translate('correct_title'),
             textAlign: TextAlign.center,
           ),
           content: RichText(
@@ -474,7 +477,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
             text: TextSpan(
               children: [
                 TextSpan(
-                    text: 'تعرف على معنى كلمة ',
+                    text: AppLocalizations.of(context).translate('learn_word'),
                     style: TextStyle(
                         fontSize: 16,
                         color: Theme.of(context).colorScheme.onSurface)),
@@ -547,8 +550,8 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: Theme.of(context).colorScheme.surface,
-            title: const Text(
-              'كشل',
+            title: Text(
+              AppLocalizations.of(context).translate('incorrect'),
               textAlign: TextAlign.center,
             ),
             content: RichText(
@@ -556,7 +559,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: 'الكلمة الصحيحة هي: ',
+                    text: AppLocalizations.of(context).translate('correct_word'),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 16,
