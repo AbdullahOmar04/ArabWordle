@@ -48,7 +48,11 @@ class _MyAppState extends State<MyApp> {
       builder: (context, themeNotifier, child) {
         return MaterialApp(
           locale: _locale,
-          localizationsDelegates: [
+          builder: (context, child) {
+            return Directionality(
+                textDirection: TextDirection.ltr, child: child!);
+          },
+          localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,

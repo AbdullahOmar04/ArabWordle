@@ -9,26 +9,20 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class FiveLetterScreen extends StatefulWidget {
-  const FiveLetterScreen({super.key, required this.isHardMode});
-  final bool isHardMode;
+class DailyMode extends StatefulWidget {
+  const DailyMode({super.key});
 
   @override
   State<StatefulWidget> createState() {
-    return _FiveLetterScreen();
+    return _DailyMode();
   }
 }
 
-class _FiveLetterScreen extends State<FiveLetterScreen>
-    with TickerProviderStateMixin {
+class _DailyMode extends State<DailyMode> with TickerProviderStateMixin {
   bool gameWon = false;
-
   int _currentTextfield = 0;
-
   int _fiveLettersStop = 0;
-
-  String _correctWord = '';
-
+  String _dailyWord = '';
   int _currentRow = 0;
 
   final List<TextEditingController> _controllers =
@@ -41,11 +35,8 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
 
   List<String> words = [];
   List<String> c_words = [];
-
   List<int> revealedIndices = [];
-
   final bool _readOnly = true;
-
   Map<String, Color> keyColors = {};
 
   final List<AnimationController> _shakeControllers = [];
@@ -57,7 +48,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
   @override
   void initState() {
     super.initState();
-    _loadWordsFromJson();
+    _initializeGame();
 
     // Initialize an AnimationController and Animation for each row
     for (int i = 0; i < 7; i++) {
@@ -110,6 +101,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
     for (var controller in _scaleControllers) {
       controller.dispose();
     }
+    _saveGameProgress();
     super.dispose();
   }
 
@@ -156,16 +148,94 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
       words = List<String>.from(data['words']);
       c_words = List<String>.from(data2['c_words']);
     });
-
-    _getRandomWord(c_words);
   }
 
+  Future<void> _initializeGame() async {
+    await _loadWordsFromJson(); // Ensure words are loaded first
+    await _initializeDailyWord(); // Then set up the daily word
+    setState(() {}); // Trigger a rebuild to reflect the loaded daily word
+  }
 
-  void _getRandomWord(List<String> woords) {
-    final random = Random();
-    setState(() {
-      _correctWord = c_words[random.nextInt(woords.length)];
-    });
+  Future<void> _initializeDailyWord() async {
+    final prefs = await SharedPreferences.getInstance();
+    String today = DateTime.now().toIso8601String().substring(0, 10);
+
+    String? storedDate = prefs.getString('daily_word_date');
+    if (storedDate == today) {
+      _dailyWord = prefs.getString('daily_word') ?? '';
+      await _loadGameState(); // Load saved game state if it exists
+    } else {
+      _dailyWord = _generateDailyWord();
+      await prefs.setString('daily_word', _dailyWord);
+      await prefs.setString('daily_word_date', today);
+      await _resetGameState(); // Reset if a new daily word is generated
+    }
+  }
+
+  String _generateDailyWord() {
+    int seed = DateTime.now().millisecondsSinceEpoch ~/ (1000 * 60 * 60 * 24);
+    final random = Random(seed);
+    int wordIndex = random.nextInt(c_words.length);
+    return c_words[wordIndex];
+  }
+
+  Future<void> _resetGameState() async {
+    final prefs = await SharedPreferences.getInstance();
+    gameWon = false;
+    _currentRow = 0;
+    _currentTextfield = 0;
+    revealedIndices.clear();
+    for (var controller in _controllers) {
+      controller.clear();
+    }
+
+    await prefs.setBool('game_won', false);
+    await prefs.setInt('current_row', 0);
+    await prefs.setInt('current_textfield', 0);
+    await prefs.setStringList('revealed_indices', []);
+    await prefs.setStringList('current_guesses', List.generate(35, (_) => ""));
+  }
+
+  Future<void> _loadGameState() async {
+    final prefs = await SharedPreferences.getInstance();
+    gameWon = prefs.getBool('game_won') ?? false;
+    _currentRow = prefs.getInt('current_row') ?? 0;
+    _currentTextfield = prefs.getInt('current_textfield') ?? 0;
+
+    // Load revealed indices and guesses
+    List<String>? savedRevealedIndices =
+        prefs.getStringList('revealed_indices');
+    revealedIndices =
+        savedRevealedIndices?.map((e) => int.parse(e)).toList() ?? [];
+    List<String>? savedGuesses = prefs.getStringList('current_guesses');
+    if (savedGuesses != null) {
+      for (int i = 0; i < savedGuesses.length; i++) {
+        _controllers[i].text = savedGuesses[i];
+      }
+    }
+
+    // Load color types and update _fillColors
+    List<String>? savedColorTypes = prefs.getStringList('color_types');
+    if (savedColorTypes != null) {
+      for (int i = 0; i < savedColorTypes.length; i++) {
+        _colorTypes[i] = savedColorTypes[i];
+      }
+      _updateFillColors(); // Refresh colors based on the loaded types
+    }
+
+    setState(() {}); // Update the UI with restored state
+  }
+
+  Future<void> _saveGameProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('game_won', gameWon);
+    await prefs.setInt('current_row', _currentRow);
+    await prefs.setInt('current_textfield', _currentTextfield);
+    await prefs.setStringList(
+        'revealed_indices', revealedIndices.map((e) => e.toString()).toList());
+    await prefs.setStringList(
+        'current_guesses', _controllers.map((e) => e.text).toList());
+    await prefs.setStringList('color_types', _colorTypes);
   }
 
   @override
@@ -176,9 +246,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          widget.isHardMode
-              ? AppLocalizations.of(context).translate('hard_mode_title')
-              : AppLocalizations.of(context).translate('normal_mode_title'),
+          AppLocalizations.of(context).translate('daily_mode'),
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 32,
@@ -295,27 +363,24 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
   void _revealHint() {
     int startIndex = _currentRow * 5;
     int endIndex = startIndex + 5;
-    // Find unrevealed indices
+
     List<int> availableIndices = [];
-    
+
     for (int i = startIndex; i <= endIndex; i++) {
-      if (!revealedIndices.contains(i)) {
+      if (!revealedIndices.contains(i) && _controllers[i].text.isEmpty) {
         availableIndices.add(i);
       }
     }
 
-    // Check if there are any letters left to reveal
     if (gameWon == false && availableIndices.isNotEmpty) {
       int randomIndex =
           availableIndices[Random().nextInt(availableIndices.length)];
-      String letter = _correctWord[randomIndex % 5];
+      String letter = _dailyWord[randomIndex % 5];
 
       setState(() {
-        _controllers[randomIndex].text =
-            letter; // Display the letter in the TextField
-        _fillColors[randomIndex] = const Color.fromARGB(
-            122, 158, 158, 158); // Optional color for revealed hint
-        revealedIndices.add(randomIndex); // Mark the index as revealed
+        _controllers[randomIndex].text = letter;
+        _fillColors[randomIndex] = const Color.fromARGB(122, 158, 158, 158);
+        revealedIndices.add(randomIndex);
       });
     }
   }
@@ -407,8 +472,9 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  void _submit() {
-    print(_correctWord);
+  void _submit() async {
+    await _saveGameProgress();
+    print(_dailyWord);
     if (_currentTextfield % 5 != 0 || _fiveLettersStop != 5) {
       _vibrateTwice();
       _shakeCurrentRow();
@@ -441,11 +507,9 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
     List<String> _currentWordList = [];
     String _currentWord = "";
     String _guessedLetter;
-
     int startIndex = _currentTextfield - 5;
     int endIndex = _currentTextfield - 1;
-
-    List<String> _deconstructedCorrectWord = _correctWord.split('');
+    List<String> _deconstructedCorrectWord = _dailyWord.split('');
     Map<String, int> letterCounts = {};
 
     for (var letter in _deconstructedCorrectWord) {
@@ -486,7 +550,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
       return;
     }
 
-    if (_currentWord == _correctWord) {
+    if (_currentWord == _dailyWord) {
       setState(() {
         for (int k = startIndex; k <= endIndex; k++) {
           _guessedLetter = _controllers[k].text;
@@ -496,40 +560,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
         }
         gameWon = true;
       });
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          title: Text(
-            AppLocalizations.of(context).translate('correct_title'),
-            textAlign: TextAlign.center,
-          ),
-          content: RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              children: [
-                TextSpan(
-                    text: AppLocalizations.of(context).translate('learn_word'),
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).colorScheme.onSurface)),
-                TextSpan(
-                    text: _correctWord,
-                    style: TextStyle(
-                        decoration: TextDecoration.underline,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.blue.shade300),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        launchUrl(Uri.parse(
-                            'https://www.almaany.com/ar/dict/ar-ar/$_correctWord/?'));
-                      }),
-              ],
-            ),
-          ),
-        ),
-      );
+      return _correctWordDialog();
     } else {
       for (int i = startIndex, j = 0; i <= endIndex; i++, j++) {
         _guessedLetter = _controllers[i].text;
@@ -578,43 +609,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
       }
 
       if (_currentTextfield == 35 && gameWon == false) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            title: Text(
-              AppLocalizations.of(context).translate('incorrect'),
-              textAlign: TextAlign.center,
-            ),
-            content: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text:
-                        AppLocalizations.of(context).translate('correct_word'),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 16,
-                    ),
-                  ),
-                  TextSpan(
-                      text: _correctWord,
-                      style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Colors.blue.shade300),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          launchUrl(Uri.parse(
-                              'https://www.almaany.com/ar/dict/ar-ar/$_correctWord/?'));
-                        }),
-                ],
-              ),
-            ),
-          ),
-        );
+        _incorrectWordDialog;
       } else if (gameWon == true) {}
     }
 
@@ -624,4 +619,80 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
   }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  void _incorrectWordDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          AppLocalizations.of(context).translate('incorrect'),
+          textAlign: TextAlign.center,
+        ),
+        content: RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: AppLocalizations.of(context).translate('correct_word'),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 16,
+                ),
+              ),
+              TextSpan(
+                  text: _dailyWord,
+                  style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.blue.shade300),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      launchUrl(Uri.parse(
+                          'https://www.almaany.com/ar/dict/ar-ar/$_dailyWord/?'));
+                    }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _correctWordDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          AppLocalizations.of(context).translate('correct_title'),
+          textAlign: TextAlign.center,
+        ),
+        content: RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            children: [
+              TextSpan(
+                  text: AppLocalizations.of(context).translate('learn_word'),
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface)),
+              TextSpan(
+                  text: _dailyWord,
+                  style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.blue.shade300),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      launchUrl(Uri.parse(
+                          'https://www.almaany.com/ar/dict/ar-ar/$_dailyWord/?'));
+                    }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

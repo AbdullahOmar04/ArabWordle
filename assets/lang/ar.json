@@ -15,9 +15,10 @@
   "normal_mode_title": "كلمات",
   "five_letter_error": "الرجاء إدخال كلمة تتكون من 5 أحرف",
   "not_in_library": "الكلمة ليست في قاموس اللعبة",
-  "correct": "!أحسنت",
+  "correct_title": "!أحسنت",
   "learn_word": "تعرف على معنى كلمة ",
   "incorrect": "حصل خير",
   "correct_word":  "الكلمة الصحيحة هي: ",
-  "choose_lang": "إختر اللغة"
+  "choose_lang": "إختر اللغة",
+  "daily_mode": "الكلمة اليومية"
 }
