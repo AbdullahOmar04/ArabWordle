@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+int diamondAmount = 0;
+
 class MainMenu extends StatefulWidget {
   const MainMenu({super.key});
 
@@ -17,8 +19,7 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
-  bool isHardMode = false; // Track the hard mode state
-  int diamondAmount = 00;
+  bool isHardMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +29,10 @@ class _MainMenuState extends State<MainMenu> {
       appBar: AppBar(
         actions: [
           GestureDetector(
-            child: _coins(context, diamondAmount),
-            onTap: () {},
+            child: coins(context, diamondAmount),
+            onTap: () {
+              openShop(context);
+            },
           ),
         ],
       ),
@@ -41,7 +44,7 @@ class _MainMenuState extends State<MainMenu> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Image.asset(
-                'assets/images/Mountains.png', // Path to your logo
+                'assets/images/Mountains.png', // Logo
                 height: 200,
               ),
             ),
@@ -69,7 +72,8 @@ class _MainMenuState extends State<MainMenu> {
             _longBuildModeButton(
                 context,
                 AppLocalizations.of(context).translate('daily_mode'),
-                Theme.of(context).colorScheme.onPrimary, () {
+                Colors.green.shade300,
+                Colors.teal.shade300, () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -85,7 +89,8 @@ class _MainMenuState extends State<MainMenu> {
                   _buildModeButton(
                       context,
                       AppLocalizations.of(context).translate('5_letter_mode'),
-                      Theme.of(context).colorScheme.secondary, () {
+                      const Color.fromARGB(255, 115, 194, 228),
+                      const Color.fromARGB(255, 27, 138, 185), () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -98,7 +103,8 @@ class _MainMenuState extends State<MainMenu> {
                   _buildModeButton(
                       context,
                       AppLocalizations.of(context).translate('4_letter_mode'),
-                      Theme.of(context).colorScheme.secondary, () {
+                      const Color.fromARGB(255, 255, 187, 86),
+                      const Color.fromARGB(255, 255, 126, 39), () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -111,7 +117,8 @@ class _MainMenuState extends State<MainMenu> {
                   _buildModeButton(
                       context,
                       AppLocalizations.of(context).translate('3_letter_mode'),
-                      Theme.of(context).colorScheme.secondary, () {
+                      const Color.fromARGB(255, 204, 93, 255),
+                      const Color.fromARGB(255, 104, 8, 148), () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -123,59 +130,57 @@ class _MainMenuState extends State<MainMenu> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  onPressed: () {
-                    _settings(context, themeNotifier);
-                  },
-                  icon: const Icon(Icons.settings),
+                _smallButton(
+                  context,
+                  const Icon(
+                    Icons.settings,
+                    color: Colors.white,
+                  ),
+                  Colors.grey,
+                  Colors.grey.shade700,
+                  () => _settings(context, themeNotifier),
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.question_mark_rounded),
-                )
+                const SizedBox(width: 5),
+                _smallButton(
+                  context,
+                  const Icon(
+                    Icons.storefront_outlined,
+                    color: Colors.white,
+                  ),
+                  const Color.fromARGB(255, 255, 111, 101),
+                  const Color.fromARGB(255, 255, 47, 32),
+                  () => openShop(context),
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildModeButton(
-      BuildContext context, String text, Color color, VoidCallback onPressed) {
-    return Expanded(
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          padding: const EdgeInsets.symmetric(vertical: 25),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-          ),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 18,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _longBuildModeButton(
-      BuildContext context, String text, Color color, VoidCallback onPressed) {
+  Widget _longBuildModeButton(BuildContext context, String text,
+      Color gradStart, Color gradEnd, VoidCallback onPressed) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: ElevatedButton(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [gradStart, gradEnd],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: color,
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
             minimumSize: const Size.fromHeight(120),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(5),
@@ -185,25 +190,94 @@ class _MainMenuState extends State<MainMenu> {
             leading: Stack(
               alignment: Alignment.center,
               children: [
-                const Icon(Icons.calendar_today, size: 56), // Base icon
+                const Icon(
+                  Icons.calendar_today,
+                  size: 56,
+                  color: Colors.white,
+                ), // Base icon
                 Positioned(
                   top: 18,
                   child: Text(
-                    '${DateTime.now().day}', // Dynamic date
+                    '${DateTime.now().day}',
                     style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
             ),
-            title: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 28,
-                color: Colors.white,
+            title: Center(
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 28,
+                  color: Colors.white,
+                ),
               ),
             ),
-          )),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModeButton(BuildContext context, String text, Color gradStart,
+      Color gradEnd, VoidCallback onPressed) {
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [gradStart, gradEnd],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(5)),
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            padding: const EdgeInsets.symmetric(vertical: 25),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 18,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _smallButton(BuildContext context, Icon icon, Color gradStart,
+      Color gradEnd, VoidCallback onPressed) {
+    return Container(
+      decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [gradStart, gradEnd],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(5)),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+        ),
+        child: icon,
+      ),
     );
   }
 
@@ -268,9 +342,9 @@ class _MainMenuState extends State<MainMenu> {
                 ListTile(
                   title: Text(
                     AppLocalizations.of(context).translate('enable_vibration'),
-                    textAlign: TextAlign.right,
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface),
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 18),
                   ),
                   trailing: Switch(
                     activeColor: Theme.of(context).colorScheme.onSurface,
@@ -381,11 +455,11 @@ class _MainMenuState extends State<MainMenu> {
   }
 }
 
-Widget _coins(BuildContext context, int amount) {
+Widget coins(BuildContext context, int amount) {
   return Container(
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(
-      color: Colors.grey.shade400,
+      color: const Color.fromARGB(94, 131, 131, 131),
       borderRadius: const BorderRadius.all(
         Radius.circular(10),
       ),
@@ -396,6 +470,7 @@ Widget _coins(BuildContext context, int amount) {
       children: [
         const Icon(
           Icons.diamond,
+          color: Colors.blue,
         ),
         const SizedBox(width: 10),
         Text(
@@ -404,5 +479,18 @@ Widget _coins(BuildContext context, int amount) {
         ),
       ],
     ),
+  );
+}
+
+void openShop(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(
+          AppLocalizations.of(context).translate('shop'),
+        ),
+      );
+    },
   );
 }

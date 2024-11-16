@@ -16,10 +16,10 @@ final ThemeData lightTheme = ThemeData(
 
 final ThemeData darkTheme = ThemeData(
   colorScheme: ColorScheme.dark(
-    surface: Colors.black,
+    surface: Colors.grey.shade900,
     primary: Colors.grey.shade600,
     secondary: Colors.grey.shade600,
-    error: const Color.fromARGB(255, 77, 5, 0),
+    error: const Color.fromARGB(255, 116, 8, 0),
     onPrimary: Colors.green.shade800,
     onSecondary: Colors.orange.shade700,
     onError: Colors.grey.shade800,

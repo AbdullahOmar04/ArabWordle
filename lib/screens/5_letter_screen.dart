@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:arab_wordle_1/keyboard.dart';
+import 'package:arab_wordle_1/screens/main_menu.dart';
 import 'package:arab_wordle_1/themes/app_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -160,7 +161,6 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
     _getRandomWord(c_words);
   }
 
-
   void _getRandomWord(List<String> woords) {
     final random = Random();
     setState(() {
@@ -185,6 +185,14 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
               color: Theme.of(context).colorScheme.onSurface),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
+        actions: [
+          GestureDetector(
+            child: coins(context, diamondAmount),
+            onTap: () {
+              openShop(context);
+            },
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -297,7 +305,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
     int endIndex = startIndex + 5;
     // Find unrevealed indices
     List<int> availableIndices = [];
-    
+
     for (int i = startIndex; i <= endIndex; i++) {
       if (!revealedIndices.contains(i)) {
         availableIndices.add(i);

@@ -2,12 +2,11 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:arab_wordle_1/keyboard.dart';
+import 'package:arab_wordle_1/screens/main_menu.dart';
 import 'package:arab_wordle_1/themes/app_localization.dart';
-import 'package:arab_wordle_1/themes/theme_provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -182,28 +181,12 @@ class _FourLetterScreen extends State<FourLetterScreen>
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
         actions: [
-          IconButton(
-            onPressed: () {
-              ThemeNotifier themeNotifier =
-                  Provider.of<ThemeNotifier>(context, listen: false);
-              if (themeNotifier.themeMode == ThemeMode.light) {
-                themeNotifier.setTheme(ThemeMode.dark);
-              } else {
-                themeNotifier.setTheme(ThemeMode.light);
-              }
-              _updateFillColors();
-              _updateKeyColors();
+GestureDetector(
+            child: coins(context, diamondAmount),
+            onTap: () {
+              openShop(context);
             },
-            icon: Icon(
-                Provider.of<ThemeNotifier>(context).themeMode == ThemeMode.light
-                    ? Icons.dark_mode
-                    : Icons.light_mode_rounded),
-            color: Theme.of(context).colorScheme.onSurface,
-            iconSize: 30,
-            padding: const EdgeInsets.only(right: 10),
-            highlightColor: Colors.transparent,
-          ),
-        ],
+          ),        ],
       ),
       body: Column(
         children: [

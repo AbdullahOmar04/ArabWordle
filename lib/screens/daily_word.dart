@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:arab_wordle_1/keyboard.dart';
+import 'package:arab_wordle_1/screens/main_menu.dart';
 import 'package:arab_wordle_1/themes/app_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -253,6 +254,14 @@ class _DailyMode extends State<DailyMode> with TickerProviderStateMixin {
               color: Theme.of(context).colorScheme.onSurface),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
+        actions: [
+          GestureDetector(
+            child: coins(context, diamondAmount),
+            onTap: () {
+              openShop(context);
+            },
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
