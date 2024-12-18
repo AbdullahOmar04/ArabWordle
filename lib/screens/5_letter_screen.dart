@@ -42,11 +42,8 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
 
   List<String> words = [];
   List<String> c_words = [];
-
   List<int> revealedIndices = [];
-
   final bool _readOnly = true;
-
   Map<String, Color> keyColors = {};
 
   final List<AnimationController> _shakeControllers = [];
@@ -60,7 +57,6 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
     super.initState();
     _loadWordsFromJson();
 
-    // Initialize an AnimationController and Animation for each row
     for (int i = 0; i < 7; i++) {
       final controller = AnimationController(
         duration: const Duration(milliseconds: 500),
@@ -91,7 +87,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
         ),
       )..addStatusListener((status) {
           if (status == AnimationStatus.completed) {
-            controller.reverse(); // Return to normal size after popping up
+            controller.reverse();
           }
         });
 
@@ -115,8 +111,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
   }
 
   void _shakeCurrentRow() {
-    int currentRow = (_currentTextfield / 5).floor();
-    _shakeControllers[currentRow].forward(from: 0);
+    _shakeControllers[_currentRow].forward(from: 0);
   }
 
   Future<void> _vibrateTwice() async {
@@ -277,15 +272,6 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
                   horizontal: 10,
                 ),
               ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.keyboard),
-                iconSize: 40,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 15,
-                  horizontal: 10,
-                ),
-              ),
             ],
           ),
           CustomKeyboard(
@@ -302,28 +288,25 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   void _revealHint() {
     int startIndex = _currentRow * 5;
-    int endIndex = startIndex + 5;
-    // Find unrevealed indices
+    int endIndex = startIndex + 4;
+
     List<int> availableIndices = [];
 
     for (int i = startIndex; i <= endIndex; i++) {
-      if (!revealedIndices.contains(i)) {
+      if (!revealedIndices.contains(i) && _controllers[i].text.isEmpty) {
         availableIndices.add(i);
       }
     }
 
-    // Check if there are any letters left to reveal
     if (gameWon == false && availableIndices.isNotEmpty) {
       int randomIndex =
           availableIndices[Random().nextInt(availableIndices.length)];
       String letter = _correctWord[randomIndex % 5];
 
       setState(() {
-        _controllers[randomIndex].text =
-            letter; // Display the letter in the TextField
-        _fillColors[randomIndex] = const Color.fromARGB(
-            122, 158, 158, 158); // Optional color for revealed hint
-        revealedIndices.add(randomIndex); // Mark the index as revealed
+        _controllers[randomIndex].text = letter;
+        _fillColors[randomIndex] = const Color.fromARGB(122, 158, 158, 158);
+        revealedIndices.add(randomIndex);
       });
     }
   }
@@ -468,6 +451,7 @@ class _FiveLetterScreen extends State<FiveLetterScreen>
 
     if (!words.contains(_currentWord)) {
       _vibrateTwice();
+      _shakeCurrentRow();
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

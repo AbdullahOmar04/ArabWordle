@@ -33,6 +33,8 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
 
   String _correctWord = '';
 
+  int _currentRow = 0;
+
   final List<TextEditingController> _controllers =
       List.generate(21, (index) => TextEditingController());
 
@@ -43,9 +45,8 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
 
   List<String> words = [];
   List<String> c_words = [];
-
   final bool _readOnly = true;
-
+  List<int> revealedIndices = [];
   Map<String, Color> keyColors = {};
 
   final List<AnimationController> _shakeControllers = [];
@@ -113,8 +114,7 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
   }
 
   void _shakeCurrentRow() {
-    int currentRow = (_currentTextfield / 3).floor();
-    _shakeControllers[currentRow].forward(from: 0);
+    _shakeControllers[_currentRow].forward(from: 0);
   }
 
   Future<void> _vibrateTwice() async {
@@ -184,12 +184,13 @@ class _FourLetterScreen extends State<ThreeLetterScreen>
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
         actions: [
-GestureDetector(
+          GestureDetector(
             child: coins(context, diamondAmount),
             onTap: () {
               openShop(context);
             },
-          ),        ],
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -262,7 +263,21 @@ GestureDetector(
                 );
               },
             ),
-          const Spacer(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                onPressed: _revealHint,
+                icon: const Icon(Icons.search_rounded),
+                iconSize: 40,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 15,
+                  horizontal: 10,
+                ),
+              ),
+            ],
+          ),
           CustomKeyboard(
             onTextInput: (myText) => _insertText(myText),
             onBackspace: _backspace,
@@ -275,7 +290,32 @@ GestureDetector(
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  void _revealHint() {
+    int startIndex = _currentRow * 3;
+    int endIndex = startIndex + 2;
 
+    List<int> availableIndices = [];
+
+    for (int i = startIndex; i <= endIndex; i++) {
+      if (!revealedIndices.contains(i) && _controllers[i].text.isEmpty) {
+        availableIndices.add(i);
+      }
+    }
+
+    if (gameWon == false && availableIndices.isNotEmpty) {
+      int randomIndex =
+          availableIndices[Random().nextInt(availableIndices.length)];
+      String letter = _correctWord[randomIndex % 5];
+
+      setState(() {
+        _controllers[randomIndex].text = letter;
+        _fillColors[randomIndex] = const Color.fromARGB(122, 158, 158, 158);
+        revealedIndices.add(randomIndex);
+      });
+    }
+  }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
   void _updateFillColors() {
     setState(() {
       final colorScheme = Theme.of(context).colorScheme;
@@ -414,6 +454,7 @@ GestureDetector(
 
     if (!words.contains(currentWord)) {
       _vibrateTwice();
+      _shakeCurrentRow();
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -574,6 +615,7 @@ GestureDetector(
 
     currentWordList.clear();
     _fiveLettersStop = 0;
+    _currentRow++;
   }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -13,14 +13,15 @@
   "5_letter_mode": "وضع ٥ أحرف",
   "hard_mode_title": "المستوى الصعب",
   "normal_mode_title": "كلمات",
-  "five_letter_error": "الرجاء إدخال كلمة تتكون من 5 أحرف",
+  "five_letter_error": "الرجاء إدخال كلمة تتكون من ٥ أحرف",
+  "four_letter_error": "الرجاء إدخال كلمة تتكون من ٤ أحرف",
+  "three_letter_error": "الرجاء إدخال كلمة تتكون من ٣ أحرف",
   "not_in_library": "الكلمة ليست في قاموس اللعبة",
   "correct_title": "!أحسنت",
   "learn_word": "تعرف على معنى كلمة ",
   "incorrect": "حصل خير",
-  "correct_word":  "الكلمة الصحيحة هي: ",
+  "correct_word": "الكلمة الصحيحة هي: ",
   "choose_lang": "إختر اللغة",
   "daily_mode": "الكلمة اليومية",
-  "shop" : "المتجر"
-
+  "shop": "المتجر"
 }

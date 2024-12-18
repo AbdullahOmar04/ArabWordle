@@ -12,7 +12,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 class FourLetterScreen extends StatefulWidget {
   const FourLetterScreen({super.key, required this.isHardMode});
-
   final bool isHardMode;
 
   @override
@@ -31,6 +30,8 @@ class _FourLetterScreen extends State<FourLetterScreen>
 
   String _correctWord = '';
 
+  int _currentRow = 0;
+
   final List<TextEditingController> _controllers =
       List.generate(28, (index) => TextEditingController());
 
@@ -41,9 +42,8 @@ class _FourLetterScreen extends State<FourLetterScreen>
 
   List<String> words = [];
   List<String> c_words = [];
-
+  List<int> revealedIndices = [];
   final bool _readOnly = true;
-
   Map<String, Color> keyColors = {};
 
   final List<AnimationController> _shakeControllers = [];
@@ -51,6 +51,7 @@ class _FourLetterScreen extends State<FourLetterScreen>
 
   final List<AnimationController> _scaleControllers = [];
   final List<Animation<double>> _scaleAnimations = [];
+
   @override
   void initState() {
     super.initState();
@@ -110,8 +111,7 @@ class _FourLetterScreen extends State<FourLetterScreen>
   }
 
   void _shakeCurrentRow() {
-    int currentRow = (_currentTextfield / 4).floor();
-    _shakeControllers[currentRow].forward(from: 0);
+    _shakeControllers[_currentRow].forward(from: 0);
   }
 
   Future<void> _vibrateTwice() async {
@@ -181,14 +181,16 @@ class _FourLetterScreen extends State<FourLetterScreen>
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
         actions: [
-GestureDetector(
+          GestureDetector(
             child: coins(context, diamondAmount),
             onTap: () {
               openShop(context);
             },
-          ),        ],
+          ),
+        ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Spacer(),
           for (int i = 0; i < 7; i++)
@@ -247,7 +249,6 @@ GestureDetector(
                                     borderRadius: BorderRadius.all(
                                       Radius.circular(5),
                                     ),
-                                    borderSide: BorderSide(width: 20),
                                   ),
                                 ),
                               ),
@@ -259,7 +260,21 @@ GestureDetector(
                 );
               },
             ),
-          const Spacer(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                onPressed: _revealHint,
+                icon: const Icon(Icons.search_rounded),
+                iconSize: 40,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 15,
+                  horizontal: 10,
+                ),
+              ),
+            ],
+          ),
           CustomKeyboard(
             onTextInput: (myText) => _insertText(myText),
             onBackspace: _backspace,
@@ -273,6 +288,33 @@ GestureDetector(
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  void _revealHint() {
+    int startIndex = _currentRow * 4;
+    int endIndex = startIndex + 3;
+
+    List<int> availableIndices = [];
+
+    for (int i = startIndex; i <= endIndex; i++) {
+      if (!revealedIndices.contains(i) && _controllers[i].text.isEmpty) {
+        availableIndices.add(i);
+      }
+    }
+
+    if (gameWon == false && availableIndices.isNotEmpty) {
+      int randomIndex =
+          availableIndices[Random().nextInt(availableIndices.length)];
+      String letter = _correctWord[randomIndex % 4];
+
+      setState(() {
+        _controllers[randomIndex].text = letter;
+        _fillColors[randomIndex] = const Color.fromARGB(122, 158, 158, 158);
+        revealedIndices.add(randomIndex);
+      });
+    }
+  }
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+  ///
   void _updateFillColors() {
     setState(() {
       final colorScheme = Theme.of(context).colorScheme;
@@ -361,8 +403,8 @@ GestureDetector(
   void _submit() {
     print(_correctWord);
     if (_currentTextfield % 4 != 0 || _fiveLettersStop != 4) {
-      _shakeCurrentRow();
       _vibrateTwice();
+      _shakeCurrentRow();
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -370,7 +412,7 @@ GestureDetector(
           dismissDirection: DismissDirection.horizontal,
           duration: const Duration(seconds: 2),
           content: Text(
-            AppLocalizations.of(context).translate('five_letter_error'),
+            AppLocalizations.of(context).translate('four_letter_error'),
             style: TextStyle(color: Colors.grey.shade200, fontSize: 20),
             textAlign: TextAlign.center,
           ),
@@ -411,6 +453,7 @@ GestureDetector(
 
     if (!words.contains(currentWord)) {
       _vibrateTwice();
+      _shakeCurrentRow();
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -550,11 +593,17 @@ GestureDetector(
                     ),
                   ),
                   TextSpan(
-                    text: _correctWord,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface),
-                  ),
+                      text: _correctWord,
+                      style: TextStyle(
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.blue.shade300),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          launchUrl(Uri.parse(
+                              'https://www.almaany.com/ar/dict/ar-ar/$_correctWord/?'));
+                        }),
                 ],
               ),
             ),
@@ -565,6 +614,7 @@ GestureDetector(
 
     currentWordList.clear();
     _fiveLettersStop = 0;
+    _currentRow++;
   }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

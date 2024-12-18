@@ -89,8 +89,8 @@ class _MainMenuState extends State<MainMenu> {
                   _buildModeButton(
                       context,
                       AppLocalizations.of(context).translate('5_letter_mode'),
-                      const Color.fromARGB(255, 115, 194, 228),
-                      const Color.fromARGB(255, 27, 138, 185), () {
+                      const Color.fromARGB(255, 142, 212, 241),
+                      const Color.fromARGB(255, 0, 125, 179), () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -99,12 +99,12 @@ class _MainMenuState extends State<MainMenu> {
                         ) // Pass hard mode state
                         );
                   }),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 10),
                   _buildModeButton(
                       context,
                       AppLocalizations.of(context).translate('4_letter_mode'),
-                      const Color.fromARGB(255, 255, 187, 86),
-                      const Color.fromARGB(255, 255, 126, 39), () {
+                      const Color.fromARGB(255, 255, 201, 120),
+                      const Color.fromARGB(255, 255, 114, 20), () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -113,11 +113,11 @@ class _MainMenuState extends State<MainMenu> {
                         ) // Pass hard mode state
                         );
                   }),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 10),
                   _buildModeButton(
                       context,
                       AppLocalizations.of(context).translate('3_letter_mode'),
-                      const Color.fromARGB(255, 204, 93, 255),
+                      const Color.fromARGB(255, 219, 142, 255),
                       const Color.fromARGB(255, 104, 8, 148), () {
                     Navigator.push(
                         context,
@@ -140,18 +140,30 @@ class _MainMenuState extends State<MainMenu> {
                     Icons.settings,
                     color: Colors.white,
                   ),
-                  Colors.grey,
+                  const Color.fromARGB(255, 206, 206, 206),
                   Colors.grey.shade700,
                   () => _settings(context, themeNotifier),
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: 10),
+                _smallButton(
+                  context,
+                  const Icon(
+                    Icons.emoji_events,
+                    color: Colors.white,
+                    size: 35,
+                  ),
+                  const Color.fromARGB(255, 189, 255, 250),
+                  const Color.fromARGB(255, 0, 185, 185),
+                  () => _achievements(context),
+                ),
+                const SizedBox(width: 10),
                 _smallButton(
                   context,
                   const Icon(
                     Icons.storefront_outlined,
                     color: Colors.white,
                   ),
-                  const Color.fromARGB(255, 255, 111, 101),
+                  const Color.fromARGB(255, 255, 169, 163),
                   const Color.fromARGB(255, 255, 47, 32),
                   () => openShop(context),
                 ),
@@ -165,55 +177,156 @@ class _MainMenuState extends State<MainMenu> {
 
   Widget _longBuildModeButton(BuildContext context, String text,
       Color gradStart, Color gradEnd, VoidCallback onPressed) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [gradStart, gradEnd],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            minimumSize: const Size.fromHeight(120),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
-          child: ListTile(
-            leading: Stack(
-              alignment: Alignment.center,
-              children: [
-                const Icon(
-                  Icons.calendar_today,
-                  size: 56,
-                  color: Colors.white,
-                ), // Base icon
-                Positioned(
-                  top: 18,
-                  child: Text(
-                    '${DateTime.now().day}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+    double scale = 1.0; // Button's scale factor
+
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter setState) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: InkWell(
+            onTap: () async {
+              // Restore scale and execute action after animation
+              setState(() => scale = 1.0);
+              await Future.delayed(const Duration(milliseconds: 100));
+              onPressed();
+            },
+            onTapDown: (_) {
+              // Shrink the button immediately on tap
+              setState(() => scale = 0.95);
+            },
+            onTapCancel: () {
+              // Restore scale if the tap is canceled
+              setState(() => scale = 1.0);
+            },
+            overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+            child: AnimatedScale(
+                scale: scale,
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.easeInOut,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [gradStart, gradEnd],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: null, // InkWell handles tap logic
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      minimumSize: const Size.fromHeight(120),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                    child: ListTile(
+                      leading: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Icon(
+                            Icons.calendar_today,
+                            size: 56,
+                            color: Colors.white,
+                          ),
+                          Positioned(
+                            top: 18,
+                            child: Text(
+                              '${DateTime.now().day}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      title: Center(
+                        child: Text(
+                          text,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
+                )),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModeButton(BuildContext context, String text, Color gradStart,
+      Color gradEnd, VoidCallback onPressed) {
+    double scale = 1.0;
+
+    return StatefulBuilder(
+      builder: (context, setState) => Expanded(
+        child: InkWell(
+          onTap: () async {
+            // Restore scale and execute action after animation
+            setState(() => scale = 1.0);
+            onPressed();
+          },
+          onTapDown: (_) {
+            // Shrink the button immediately on tap
+            setState(() => scale = 0.95);
+          },
+          onTapCancel: () {
+            // Restore scale if the tap is canceled
+            setState(() => scale = 1.0);
+          },
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          child: AnimatedScale(
+            scale: scale,
+            duration: const Duration(milliseconds: 100),
+            curve: Curves.easeInOut,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [gradStart, gradEnd],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ],
-            ),
-            title: Center(
-              child: Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 28,
-                  color: Colors.white,
+                borderRadius: BorderRadius.circular(5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 25),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  elevation: 5,
+                ),
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -223,60 +336,60 @@ class _MainMenuState extends State<MainMenu> {
     );
   }
 
-  Widget _buildModeButton(BuildContext context, String text, Color gradStart,
-      Color gradEnd, VoidCallback onPressed) {
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [gradStart, gradEnd],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(5)),
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            padding: const EdgeInsets.symmetric(vertical: 25),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 18,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _smallButton(BuildContext context, Icon icon, Color gradStart,
       Color gradEnd, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [gradStart, gradEnd],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(5)),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
+    double scale = 1.0;
+
+    return StatefulBuilder(
+      builder: (context, setState) => InkWell(
+        onTap: () async {
+          // Restore scale and execute action after animation
+          setState(() => scale = 1.0);
+          await Future.delayed(const Duration(milliseconds: 100));
+          onPressed();
+        },
+        onTapDown: (_) {
+          setState(() => scale = 0.90);
+        },
+        onTapCancel: () {
+          setState(() => scale = 1.0);
+        },
+        overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+        child: AnimatedScale(
+          scale: scale,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeInOut,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [gradStart, gradEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              child: icon,
+            ),
           ),
         ),
-        child: icon,
       ),
     );
   }
@@ -448,6 +561,24 @@ class _MainMenuState extends State<MainMenu> {
                 ),
               )
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _achievements(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Achievements',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 30,
+            ),
           ),
         );
       },

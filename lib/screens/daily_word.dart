@@ -1,4 +1,4 @@
-// ignore_for_file: sort_child_properties_last, unused_field, no_leading_underscores_for_local_identifiers, unused_local_variable, constant_pattern_never_matches_value_type
+// ignore_for_file: sort_child_properties_last, unused_field, no_leading_underscores_for_local_identifiers, unused_local_variable, constant_pattern_never_matches_value_type, use_build_context_synchronously
 import 'dart:convert';
 import 'dart:math';
 import 'package:arab_wordle_1/keyboard.dart';
@@ -107,8 +107,7 @@ class _DailyMode extends State<DailyMode> with TickerProviderStateMixin {
   }
 
   void _shakeCurrentRow() {
-    int currentRow = (_currentTextfield / 5).floor();
-    _shakeControllers[currentRow].forward(from: 0);
+    _shakeControllers[_currentRow].forward(from: 0);
   }
 
   Future<void> _vibrateTwice() async {
@@ -371,7 +370,7 @@ class _DailyMode extends State<DailyMode> with TickerProviderStateMixin {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   void _revealHint() {
     int startIndex = _currentRow * 5;
-    int endIndex = startIndex + 5;
+    int endIndex = startIndex + 4;
 
     List<int> availableIndices = [];
 
@@ -533,6 +532,7 @@ class _DailyMode extends State<DailyMode> with TickerProviderStateMixin {
 
     if (!words.contains(_currentWord)) {
       _vibrateTwice();
+      _shakeCurrentRow();
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
